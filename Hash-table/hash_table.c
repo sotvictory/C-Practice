@@ -3,34 +3,41 @@
 #include <string.h>
 #include "hash_table.h"
 
-unsigned int hash(const char* key) {
+unsigned int hash(const char *key) {
     unsigned int hash_value = 0;
+
     for (unsigned int i = 0; i < strlen(key); i++) {
         hash_value = key[i] + (hash_value << 5) - hash_value;
     }
+
     return hash_value % TABLE_SIZE;
 }
 
-hash_table* create_table(int size) {
-    hash_table* table = (hash_table*) calloc(1, sizeof(hash_table));
+HashTable * create_table(int size) {
+    HashTable *table = calloc(1, sizeof(HashTable));
+
     table->size = size;
     table->count = 0;
-    table->items = (item**) calloc(table->size, sizeof(item*));
+    table->items = calloc(table->size, sizeof(Item*));
+
     return table;
 }
 
-void insert(hash_table* table, const char* key, int value) {
+void insert_item(HashTable *table, const char *key, int value) {
     unsigned int index = hash(key) % table->size;
-    item* new_item = (item*) malloc(sizeof(item));
-    new_item->key = (char*) malloc(strlen(key) + 1);
+
+    Item *new_item = calloc(1, sizeof(Item));
+    new_item->key = calloc(strlen(key) + 1, sizeof(char));
+
     strcpy(new_item->key, key);
     new_item->value = value;
     table->items[index] = new_item;
     table->count++;
 }
 
-int search(hash_table* table, const char* key) {
+int search_item(HashTable *table, const char *key) {
     unsigned int index = hash(key) % table->size;
+
     if (table->items[index] != NULL && strcmp(table->items[index]->key, key) == 0) {
         return table->items[index]->value;
     } else {
@@ -38,8 +45,9 @@ int search(hash_table* table, const char* key) {
     }
 }
 
-void delete(hash_table* table, const char* key) {
+void delete_item(HashTable *table, const char *key) {
     unsigned int index = hash(key) % table->size;
+    
     if (table->items[index] != NULL) {
         free(table->items[index]->key);
         free(table->items[index]);
@@ -48,7 +56,7 @@ void delete(hash_table* table, const char* key) {
     }
 }
 
-void destroy_table(hash_table* table) {
+void destroy_table(HashTable *table) {
     for (int i = 0; i < table->size; i++) {
         if (table->items[i] != NULL) {
             free(table->items[i]->key);

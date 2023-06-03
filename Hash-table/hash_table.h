@@ -1,23 +1,23 @@
-#ifndef HASH_TABLE_H
-#define HASH_TABLE_H
+#ifndef HASH_TABLE_H_INCLUDED
+#define HASH_TABLE_H_INCLUDED
 
-#define TABLE_SIZE 100
+enum { TABLE_SIZE = 100 };
 
 typedef struct {
-    char* key;
+    char *key;
     int value;
-} item;
+} Item;
 
 typedef struct {
     int size;
     int count;
-    item** items;
-} hash_table;
+    Item **items;
+} HashTable;
 
-hash_table* create_table(int size);
-void insert(hash_table* table, const char* key, int value);
-int search(hash_table* table, const char* key);
-void delete(hash_table* table, const char* key);
-void destroy_table(hash_table* table);
+HashTable* create_table(int size);
+void insert_item(HashTable *table, const char *key, int value);
+int search_item(HashTable *table, const char *key);
+void delete_item(HashTable *table, const char *key);
+void destroy_table(HashTable *table);
 
 #endif
