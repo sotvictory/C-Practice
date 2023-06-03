@@ -3,17 +3,18 @@
 #include <string.h>
 #include "hash_table.h"
 
-unsigned int hash(const char *key) {
+unsigned int hash(const char *key) 
+{
     unsigned int hash_value = 0;
 
-    for (unsigned int i = 0; i < strlen(key); i++) {
+    for (unsigned int i = 0; i < strlen(key); i++) 
         hash_value = key[i] + (hash_value << 5) - hash_value;
-    }
 
     return hash_value % TABLE_SIZE;
 }
 
-HashTable * create_table(int size) {
+HashTable * create_table(int size) 
+{
     HashTable *table = calloc(1, sizeof(HashTable));
 
     table->size = size;
@@ -23,7 +24,8 @@ HashTable * create_table(int size) {
     return table;
 }
 
-void insert_item(HashTable *table, const char *key, int value) {
+void insert_item(HashTable *table, const char *key, int value) 
+{
     unsigned int index = hash(key) % table->size;
 
     Item *new_item = calloc(1, sizeof(Item));
@@ -35,20 +37,22 @@ void insert_item(HashTable *table, const char *key, int value) {
     table->count++;
 }
 
-int search_item(HashTable *table, const char *key) {
+int search_item(HashTable *table, const char *key) 
+{
     unsigned int index = hash(key) % table->size;
 
-    if (table->items[index] != NULL && strcmp(table->items[index]->key, key) == 0) {
+    if (table->items[index] != NULL && strcmp(table->items[index]->key, key) == 0) 
         return table->items[index]->value;
-    } else {
+    else 
         return -1;
-    }
 }
 
-void delete_item(HashTable *table, const char *key) {
+void delete_item(HashTable *table, const char *key) 
+{
     unsigned int index = hash(key) % table->size;
-    
-    if (table->items[index] != NULL) {
+
+    if (table->items[index] != NULL) 
+    {
         free(table->items[index]->key);
         free(table->items[index]);
         table->items[index] = NULL;
@@ -56,9 +60,12 @@ void delete_item(HashTable *table, const char *key) {
     }
 }
 
-void destroy_table(HashTable *table) {
-    for (int i = 0; i < table->size; i++) {
-        if (table->items[i] != NULL) {
+void destroy_table(HashTable *table) 
+{
+    for (int i = 0; i < table->size; i++) 
+    {
+        if (table->items[i] != NULL) 
+        {
             free(table->items[i]->key);
             free(table->items[i]);
         }
