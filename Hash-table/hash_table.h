@@ -14,7 +14,7 @@ typedef struct {
     Item **items;
 } HashTable;
 
-HashTable* create_table(int size);
+HashTable * create_table(int size);
 void insert_item(HashTable *table, const char *key, int value);
 int search_item(HashTable *table, const char *key);
 void delete_item(HashTable *table, const char *key);
