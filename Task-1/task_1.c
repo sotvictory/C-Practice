@@ -13,8 +13,7 @@ char *read_line(void)
         exit(1);
     }
 
-    // ПРОВЕРИТЬ НЕОБХОДИМОСТЬ c != \n
-    while (((c = getchar()) != EOF) && (c != '\n')) {
+    while (((c = getchar()) != EOF)) {
         buffer[cnt++] = (char)c;
         if (cnt == line_size) {
             line_size *= 1.5;
