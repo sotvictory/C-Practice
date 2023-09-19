@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <ctype.h>
 
 /* calculate the length of a string */
 int mystrlen(const char *s)
@@ -83,8 +84,21 @@ void cdelete(char *s, char c)
     *q = '\0';
 }
 
+int scandigit(const char *s)
+{
+    int cnt = 0;
+
+    while (*s) {
+        if (isdigit(*s)) {
+            cnt++;
+        }
+        s++;
+    }
+
+    return cnt;
+}
+
 /* Написать функцию
-4) scandigit( s) – определяет количество символов-цифр в заданной строке
 5) scat (s1, s2, s3) – создает из двух, упорядоченных по алфавиту строк s1 и s2 строку s3, также упорядоченную по алфавиту
 */
 
@@ -93,11 +107,12 @@ int main(void)
     char str[] = "These are functions for processing strings"; // length 42 not including zero
     char str1[] = "These are functions";
     char str2[] = "These are functions for processing some strings";
+    char str3[] = "Digits 1, 2, 3. di5gi64t"; // 6 digits
     char empty_str[] = "";
     int n = 0;
     char c;
 
-    printf("The length of string is %d\n\n", mystrlen(str));
+    printf("The length of string is %d\n\n", mystrlen(str)); // 42
 
     reverse(str);
     printf("Reversed string: %s\n", str);
@@ -114,14 +129,19 @@ int main(void)
 
     frequency(empty_str, &n, &c);
     if (n != 0)
-        printf("Most frequent character is '%c' and it occurs %d times.\n\n", c, n);
+        printf("Most frequent character is '%c' and it occurs %d times.\n\n", c, n); // empty
     frequency(str, &n, &c);
     if (n != 0)
-        printf("Most frequent character is '%c' and it occurs %d times.\n\n", c, n);
+        printf("Most frequent character is '%c' and it occurs %d times.\n\n", c, n); // 's', 6 times
 
     printf("String before: %s\n", str);
     cdelete(str, 's');
-    printf("String after: %s\n", str);
+    printf("String after: %s\n\n", str);
+
+    printf("String: %s\n", str3);
+    printf("There are %d digits in the string\n", scandigit(str3)); // 6
+    printf("String: %s\n", str);
+    printf("There are %d digits in the string\n\n", scandigit(str)); // 0
 
     return 0;
 }
