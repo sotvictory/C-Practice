@@ -68,8 +68,22 @@ void frequency(const char *s, int *n, char *c)
     *c = max_char;
 }
 
+/* remove all characters `c` from a string `s` */
+void cdelete(char *s, char c)
+{
+    char *p = s, *q = s;
+
+    while (*p) {
+        if (*p!= c) {
+            *q = *p;
+            q++;
+        }
+        p++;
+    }
+    *q = '\0';
+}
+
 /* Написать функцию
-! 3) cdelete (s, c) - удаляет из заданной строки s все символы c.
 4) scandigit( s) – определяет количество символов-цифр в заданной строке
 5) scat (s1, s2, s3) – создает из двух, упорядоченных по алфавиту строк s1 и s2 строку s3, также упорядоченную по алфавиту
 */
@@ -104,6 +118,10 @@ int main(void)
     frequency(str, &n, &c);
     if (n != 0)
         printf("Most frequent character is '%c' and it occurs %d times.\n\n", c, n);
+
+    printf("String before: %s\n", str);
+    cdelete(str, 's');
+    printf("String after: %s\n", str);
 
     return 0;
 }
