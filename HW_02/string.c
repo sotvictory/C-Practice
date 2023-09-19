@@ -84,6 +84,7 @@ void cdelete(char *s, char c)
     *q = '\0';
 }
 
+/* return the number of digits in a string */
 int scandigit(const char *s)
 {
     int cnt = 0;
@@ -98,9 +99,41 @@ int scandigit(const char *s)
     return cnt;
 }
 
-/* Написать функцию
-5) scat (s1, s2, s3) – создает из двух, упорядоченных по алфавиту строк s1 и s2 строку s3, также упорядоченную по алфавиту
-*/
+/* create from two ordered strings `s1` and `s2` a string `s3`, also ordered */
+void scat(const char *s1, const char *s2, char *s3)
+{
+    int len_1 = mystrlen(s1), len_2 = mystrlen(s2);
+    int i = 0, j = 0, k = 0;
+
+    /* it is possible to iterate over both lines */
+    while (i < len_1 && j < len_2) {
+        if (s1[i] <= s2[j]) {
+            s3[k] = s1[i];
+            i++;
+        } else {
+            s3[k] = s2[j];
+            j++;
+        }
+        k++;
+    }
+
+    /* `s2` is over, but `s1` is not */
+    while (i < len_1) {
+        s3[k] = s1[i];
+        i++;
+        k++;
+    }
+
+    /* `s1` is over, but `s2` is not */
+    while (j < len_2) {
+        s3[k] = s2[j];
+        j++;
+        k++;
+    }
+
+    /* both lines are over */
+    s3[k] = '\0';
+}
 
 int main(void)
 {
@@ -108,6 +141,8 @@ int main(void)
     char str1[] = "These are functions";
     char str2[] = "These are functions for processing some strings";
     char str3[] = "Digits 1, 2, 3. di5gi64t"; // 6 digits
+    char str4[] = "ac";
+    char str5[] = "bfxz"; //
     char empty_str[] = "";
     int n = 0;
     char c;
@@ -142,6 +177,11 @@ int main(void)
     printf("There are %d digits in the string\n", scandigit(str3)); // 6
     printf("String: %s\n", str);
     printf("There are %d digits in the string\n\n", scandigit(str)); // 0
+
+    printf("First string: %s\n", str4);
+    printf("Second string: %s\n", str5);
+    scat(str4, str5, empty_str);
+    printf("Result of concatenation: %s\n", empty_str);
 
     return 0;
 }
