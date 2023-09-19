@@ -27,11 +27,7 @@ char *read_line(void)
         }
     }
 
-    if ((line_size - cnt) == 1) {
-        buffer[cnt] = '\0';
-        return buffer;
-    } else {
-        // check
+    if ((line_size - cnt) != 1) {
         if (c == EOF) {
             free(buffer);
             return NULL;
@@ -39,9 +35,11 @@ char *read_line(void)
         buffer = (char *) realloc(buffer, (cnt + 1) * sizeof(char));
         if (buffer == NULL)
             mem_err();
-        buffer[cnt] = '\0';
-        return buffer;
     }
+    buffer[cnt] = '\0';
+
+    return buffer;
+
 }
 
 char **read_stdin(int *cnt)
