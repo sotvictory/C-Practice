@@ -13,7 +13,7 @@ char *read_line(void)
         exit(1);
     }
 
-    while (((c = getchar()) != EOF)) {
+    while (((c = getchar()) != EOF && c != '\n')) {
         buffer[cnt++] = (char)c;
         if (cnt == line_size) {
             line_size *= 1.5;
@@ -33,7 +33,7 @@ char *read_line(void)
             free(buffer);
             return NULL;
         }
-        line = malloc ((cnt + 1) * sizeof(char));
+        line = (char *) malloc ((cnt + 1) * sizeof(char));
         /* or memcpy(line, buffer, cnt * sizeof(char)) */
         for (i = 0; i < cnt; ++i)
             line[i] = buffer[i];
@@ -49,7 +49,7 @@ char **read_stdin(int *cnt)
     char *line;
     char **lines, **new_lines;
 
-    lines = (char**) malloc(lines_cnt * sizeof(char*));
+    lines = (char **) malloc(lines_cnt * sizeof(char *));
     if (lines == NULL) {
         fprintf(stderr, "OS did not give memory. Exit...\n");
         exit(1);
@@ -63,7 +63,7 @@ char **read_stdin(int *cnt)
 
         if (*cnt == lines_cnt) {
             lines_cnt *= 1.5;
-            lines = (char**) realloc(lines, lines_cnt * sizeof(char*));
+            lines = (char **) realloc(lines, lines_cnt * sizeof(char *));
             if (lines == NULL) {
                 fprintf(stderr, "OS did not give memory. Exit...\n");
                 exit(1);
@@ -72,7 +72,7 @@ char **read_stdin(int *cnt)
     }
 
     if (*cnt < lines_cnt) {
-        new_lines = (char**) malloc((*cnt) * sizeof(char*));
+        new_lines = (char **) malloc((*cnt) * sizeof(char *));
         if (new_lines == NULL) {
             fprintf(stderr, "OS did not give memory. Exit...\n");
             exit(1);
@@ -89,8 +89,7 @@ char **read_stdin(int *cnt)
 void sort(char **strings, int first, int last) 
 {
     int i = first, j = last;
-    char *x = strings[(first + last) / 2];
-    char *k;
+    char *x = strings[(first + last) / 2], *k;
 
     do
     {
@@ -115,7 +114,7 @@ void sort(char **strings, int first, int last)
         sort(strings, first, j);
 }
 
-void print_array(char **mas, int size) 
+void mas_print(char **mas, int size) 
 {
     int i;
 
@@ -132,18 +131,18 @@ void mas_free(char **mas, int size)
     free(mas);
 }
 
-int main (void) 
+int main(void) 
 {
     char **mas;
     int size = 0;
     mas = read_stdin(&size);
 
     printf("Got %d lines:\n", size);
-    print_array(mas, size);
+    mas_print(mas, size);
 
     sort(mas, 0, size-1);
     printf("Sorted array:\n");
-    print_array(mas, size);
+    mas_print(mas, size);
 
     mas_free(mas, size);
 
