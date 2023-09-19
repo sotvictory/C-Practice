@@ -47,8 +47,7 @@ void frequency(const char *s, int *n, char *c)
     int cnt[256] = {0};
     int len = mystrlen(s);
     int max_cnt = 0, i;
-    char max_char;
-    unsigned char cur;
+    unsigned char cur, max_char;
 
     /* handle empty string */
     if (len == 0) {
