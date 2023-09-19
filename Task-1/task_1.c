@@ -2,26 +2,28 @@
 #include <string.h>
 #include <stdlib.h>
 
+void mem_err(void)
+{
+    fprintf(stderr, "OS did not give memory. Exit...\n");
+    exit(1);
+}
+
 char *read_line(void) 
 {
-    int line_size = 128, cnt = 0, c, i;
-    char *buffer, *line;
+    int line_size = 128, cnt = 0, c;
+    char *buffer;
 
     buffer = (char *) malloc(line_size * sizeof(char));
-    if (buffer == NULL) {
-        fprintf(stderr, "OS did not give memory. Exit...\n");
-        exit(1);
-    }
+    if (buffer == NULL)
+        mem_err();
 
     while (((c = getchar()) != EOF && c != '\n')) {
         buffer[cnt++] = (char)c;
         if (cnt == line_size) {
             line_size *= 1.5;
             buffer = (char *) realloc(buffer, line_size * sizeof(char));
-            if (buffer == NULL) {
-                fprintf(stderr, "OS did not give memory. Exit...\n");
-                exit(1);
-            }
+            if (buffer == NULL)
+                mem_err();
         }
     }
 
@@ -29,31 +31,28 @@ char *read_line(void)
         buffer[cnt] = '\0';
         return buffer;
     } else {
+        // check
         if (c == EOF) {
             free(buffer);
             return NULL;
         }
-        line = (char *) malloc ((cnt + 1) * sizeof(char));
-        /* or memcpy(line, buffer, cnt * sizeof(char)) */
-        for (i = 0; i < cnt; ++i)
-            line[i] = buffer[i];
-        line[cnt] = '\0';
-        free(buffer);
-        return line;
+        buffer = (char *) realloc(buffer, (cnt + 1) * sizeof(char));
+        if (buffer == NULL)
+            mem_err();
+        buffer[cnt] = '\0';
+        return buffer;
     }
 }
 
 char **read_stdin(int *cnt)
 {
-    int lines_cnt = 16, i;
+    int lines_cnt = 16;
     char *line;
-    char **lines, **new_lines;
+    char **lines;
 
     lines = (char **) malloc(lines_cnt * sizeof(char *));
-    if (lines == NULL) {
-        fprintf(stderr, "OS did not give memory. Exit...\n");
-        exit(1);
-    }
+    if (lines == NULL)
+        mem_err();
 
     while (!feof(stdin)) {
         line = read_line();
@@ -64,26 +63,18 @@ char **read_stdin(int *cnt)
         if (*cnt == lines_cnt) {
             lines_cnt *= 1.5;
             lines = (char **) realloc(lines, lines_cnt * sizeof(char *));
-            if (lines == NULL) {
-                fprintf(stderr, "OS did not give memory. Exit...\n");
-                exit(1);
-            }
+            if (lines == NULL)
+                mem_err();
         }
     }
 
     if (*cnt < lines_cnt) {
-        new_lines = (char **) malloc((*cnt) * sizeof(char *));
-        if (new_lines == NULL) {
-            fprintf(stderr, "OS did not give memory. Exit...\n");
-            exit(1);
-        }
-        for (i = 0; i < *cnt; ++i)
-            new_lines[i] = lines[i];
-        free(lines);
-        return new_lines;
+        lines = (char **) realloc(lines, (*cnt) * sizeof(char *));
+        if (lines == NULL)
+            mem_err();
     }
-    else
-        return lines;
+
+    return lines;
 }
 
 void sort(char **strings, int first, int last) 
