@@ -8,7 +8,7 @@ int main(void)
     char str2[] = "These are functions for processing some strings";
     char str3[] = "Digits 1, 2, 3. di5gi64t"; // 6 digits
     char str4[] = "ac";
-    char str5[] = "bfxz"; //
+    char str5[] = "bfxz";
     char empty_str[] = "";
     int n = 0;
     char c;
