@@ -10,6 +10,7 @@ void print_matrix(matrix **mas, int  row_cnt, int  col_cnt);
 matrix **sum_matrix(matrix **mas_1, matrix **mas_2, int row_cnt, int col_cnt);
 matrix **scaling_matrix(double multiplier, matrix **mas, int row_cnt, int col_cnt);
 matrix **product_matrix(matrix **mas_1, int row_cnt_1, int col_cnt_1, matrix **mas_2, int row_cnt_2, int col_cnt_2);
-double det_matrix(matrix** mas, int row_cnt, int col_cnt);
+matrix **triang_matrix(matrix **mas, int col_cnt);
+double det_matrix(matrix **mas, int row_cnt, int col_cnt);
 
 #endif /* MATRIX_H */ 

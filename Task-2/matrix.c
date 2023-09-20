@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "matrix.h"
 
 matrix **read_matrix(int row_cnt, int col_cnt)
@@ -90,4 +91,43 @@ matrix **product_matrix(matrix **mas_1, int row_cnt_1, int col_cnt_1, matrix **m
     }
 
     return mas;
+}
+
+matrix** triang_matrix(matrix **mas, int col_cnt)
+{
+    matrix **mas_triangle;
+    int i, j, k;
+    double lead_elem;
+
+    mas_triangle = (matrix **) malloc(sizeof(matrix *) * col_cnt);
+    for (i = 0; i < col_cnt; i++) {
+        mas_triangle[i] = (matrix *) malloc(sizeof(matrix) * col_cnt);
+        memcpy(mas_triangle[i], mas[i], sizeof(matrix) * col_cnt);
+    }
+
+    for (k = 0; k < col_cnt - 1; k++) {
+        for (i = k + 1; i < col_cnt; i++) {
+            lead_elem = mas_triangle[i][k] / mas_triangle[k][k];
+            for (j = k; j < col_cnt; j++) {
+                mas_triangle[i][j] -= lead_elem * mas_triangle[k][j];
+            }
+        }
+    }
+
+    return mas_triangle;
+}
+
+double det_matrix(matrix **mas, int row_cnt, int col_cnt)
+{
+    matrix **mas_triangle;
+    int i;
+    double det = 1;
+
+    mas_triangle = triang_matrix(mas, col_cnt);
+    for (i = 0; i <  col_cnt; i++)
+        det *= mas_triangle[i][i];
+
+    free_matrix(mas_triangle, row_cnt);
+
+    return det;
 }
