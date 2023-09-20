@@ -40,3 +40,19 @@ void free_matrix(matrix **mas, int row_cnt)
     }
     free(mas);
 }
+
+matrix **sum_matrix(matrix **mas_1, matrix **mas_2, int row_cnt, int col_cnt)
+{
+    matrix **mas;
+    int i, j;
+
+    mas = (matrix **) malloc(sizeof(matrix *) * row_cnt);
+    for (i = 0; i < row_cnt; i++) {
+        mas[i] = (matrix *) malloc(sizeof(matrix) * col_cnt);
+        for (j = 0; j < col_cnt; j++) {
+            mas[i][j] = mas_1[i][j] + mas_2[i][j];
+        }
+    }
+    
+    return mas;
+}
