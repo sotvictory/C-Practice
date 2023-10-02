@@ -2,23 +2,31 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <unistd.h>
+
+#define BLOCK_SIZE 128  /* limit on the read characters number */
+#define BUF_SIZE 16
+
+static char *buf = NULL;
+
+typedef enum { Start, Stop, Punctuation, Word } vertex;
 
 typedef struct Node *tree;
 
 typedef struct Node {         
         char *key;
-        unsigned int cnt;
+        int cnt;
         tree left;
         tree right;
 } node;
 
-void mem_err(void)
+void mem_error(void)
 {
     fprintf(stderr, "OS did not give memory. Exit...\n");
     exit(1);
 }
 
-void print_tree(tree t, unsigned int max_cnt, unsigned int total_cnt)
+void print_tree(tree t, int max_cnt, int total_cnt)
 {
     if (t == NULL)
         return;
@@ -29,6 +37,8 @@ void print_tree(tree t, unsigned int max_cnt, unsigned int total_cnt)
     print_tree(t->left, max_cnt, total_cnt);
     print_tree(t->right, max_cnt, total_cnt);
 }
+
+//void print_tree_in_order();
 
 void destruct_tree(tree t)
 {
@@ -42,7 +52,8 @@ void destruct_tree(tree t)
     free(t);
 }
 
-int search_node(tree *t, const char *word, unsigned int *max_cnt)
+/* имеет побочный эффект: увеличивает cnt на 1, если слово было найдено */
+int search_node(tree *t, const char *word, int *max_cnt)
 {
     if (*t == NULL)
         return 0;
@@ -67,7 +78,7 @@ void add_node(tree *t, const char *word)
     if (*t == NULL) {
         *t = (node *) malloc(sizeof(node));
         if (*t == NULL)
-            mem_err();
+            mem_error();
         (*t)->key = strdup(word);
         (*t)->cnt = 1;
         (*t)->left = (*t)->right = NULL;
@@ -81,13 +92,122 @@ void add_node(tree *t, const char *word)
     return;
 }
 
+void null_buf(int *size_buf, int *cur_buf)
+{
+    buf = NULL;
+    *size_buf = 0;
+    *cur_buf = 0;
+}
+
+char get_sym(int *pos, int *n) 
+{
+    char c;
+    static char str[BLOCK_SIZE];
+
+    if (*n == 0) {
+        *pos = 0;
+        *n = read(0, str, BLOCK_SIZE);
+    }
+    if (--*n >= 0) {
+        c = str[(*pos)++];
+        //fprintf(stderr, "n = %d\n", *n);
+        //fprintf(stderr, "Got the symbol %c\n", c);
+    }
+    else {
+        c = EOF;
+        //fprintf(stderr, "Got the EOF\n");
+    }
+    
+    return c;
+}
+
+void add_sym(int *size_buf, int *cur_buf, char c)
+{
+    if (*cur_buf > *size_buf - 1) {
+        buf = realloc(buf, *size_buf += BUF_SIZE);
+        if (buf == NULL)
+            mem_error();
+    }
+    //fprintf(stderr, "Character %c will be placed in position %d buf of %d elements\n", c, *cur_buf, *size_buf);
+    buf[*cur_buf] = c;
+    (*cur_buf)++;
+    //fprintf(stderr, "Buffer: %s\n", buf);
+}
+
+int is_sep(int c)
+{
+    return isspace(c) || isblank(c) || c == ',' || c == ';' || c == ':' || c == '.';
+}
+
+int is_word_char(int c)
+{
+    return isalpha(c) || c == '-' || c == '\'';
+}
+
 int main(void) 
 {
     tree t = NULL;
-    int buf_size = 16, buf_cnt = 0, c;
-    unsigned int max_cnt = 0, total_cnt = 0;
+    int size_buf = 0, cur_buf = 0, n = 0, pos = 0, c = 0, max_cnt = 0, total_cnt = 0;
+
+    vertex V = Start;
+    c = get_sym(&pos, &n);
+
+    while (1)
+        switch(V) {
+            case Start:
+                if (is_sep(c)) {
+                    c = get_sym(&pos, &n);
+                } else if (c == EOF) {
+                    while (max_cnt > 0) { // выделить в отдельную функцию
+                        print_tree(t, max_cnt, total_cnt);
+                        max_cnt--;
+                    }
+                    fprintf(stderr, "Total size is %d\n", total_cnt);
+                    destruct_tree(t);
+                    V = Stop;
+                } else {
+                    null_buf(&size_buf, &cur_buf);
+                    add_sym(&size_buf, &cur_buf, c);
+                    if (ispunct(c)) {
+                        V = Punctuation;
+                    } else {
+                        V = Word;
+                    }
+                    c = get_sym(&pos, &n);
+                }
+                break;
+
+            case Punctuation:
+                V = Start;
+                total_cnt++;
+                if (search_node(&t, buf, &max_cnt) == 0)
+                    add_node(&t, buf);        
+                break;
+
+            case Word:
+                if (is_word_char(c)) {
+                    add_sym(&size_buf, &cur_buf, c);
+                    c = get_sym(&pos, &n);
+                } else {
+                    V = Start;
+                    total_cnt++;
+                    if (search_node(&t, buf, &max_cnt) == 0)
+                        add_node(&t, buf);
+                }
+                break;
+
+            case Stop:
+                exit(0);
+                break;
+        }
+
+    #if 0
+    // last implementation
+
+    tree t = NULL;
+    int buf_size = 16, buf_cnt = 0, max_cnt = 0, total_cnt = 0;
     char *buf = NULL;
-    char ch;
+    char c;
 
     buf = (char *) malloc(buf_size * sizeof(char));
     if (buf == NULL)
@@ -113,11 +233,13 @@ int main(void)
             free(buf);
             buf = NULL;
             buf_size = buf_cnt = 0;   
-        }
-
-        if (!isalpha(c) && (c != '\n') && (c != ' ') && (c != EOF)) {
-            ch = (char)c; 
-            add_node(&t, &ch);
+        } else if (!isalpha(c) && (c != '\n') && (c != ' ') && (c != EOF)) {
+            buf = (char *) malloc(2 * sizeof(char));
+            buf[0] = c;
+            buf[1] = '\0';
+            if (search_node(&t, buf, &max_cnt) == 0)
+                add_node(&t, buf);
+            free(buf);
         }
     }
 
@@ -127,6 +249,7 @@ int main(void)
     }
 
     destruct_tree(t);
+    #endif
 
     return 0;
 }
