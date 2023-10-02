@@ -36,6 +36,14 @@ void print_tree(tree t, int max_cnt, int total_cnt)
     print_tree(t->right, max_cnt, total_cnt);
 }
 
+void print_tree_sorted(tree t, int max_cnt, int total_cnt) 
+{
+    while (max_cnt > 0) {
+        print_tree(t, max_cnt, total_cnt);
+        max_cnt--;
+    }
+}
+
 //void print_tree_in_order();
 
 void destruct_tree(tree t)
@@ -146,8 +154,8 @@ int main(void)
 {
     tree t = NULL;
     char *buf = NULL;
-    char stream_buf[BLOCK_SIZE];
-    int size_buf = 0, cur_buf = 0, max_cnt = 0, total_cnt = 0, c, pos = 0, remaining_chars = 0;
+    char stream_buf[BLOCK_SIZE] = {0};
+    int size_buf = 0, cur_buf = 0, max_cnt = 0, total_cnt = 0, pos = 0, remaining_chars = 0, c;
 
     vertex V = Start;
     c = get_sym(stream_buf, &pos, &remaining_chars);
@@ -158,10 +166,7 @@ int main(void)
                 if (is_sep(c)) {
                     c = get_sym(stream_buf, &pos, &remaining_chars);
                 } else if (c == EOF) {
-                    while (max_cnt > 0) { // выделить в отдельную функцию
-                        print_tree(t, max_cnt, total_cnt);
-                        max_cnt--;
-                    }
+                    print_tree_sorted(t, max_cnt, total_cnt);
                     //fprintf(stderr, "Total size is %d\n", total_cnt);
                     destruct_tree(t);
                     V = Stop;
