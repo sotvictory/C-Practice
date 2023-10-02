@@ -7,8 +7,6 @@
 #define BLOCK_SIZE 128  /* limit on the read characters number */
 #define BUF_SIZE 16
 
-static char *buf = NULL;
-
 typedef enum { Start, Stop, Punctuation, Word } vertex;
 
 typedef struct Node *tree;
@@ -92,28 +90,28 @@ void add_node(tree *t, const char *word)
     return;
 }
 
-void null_buf(int *size_buf, int *cur_buf)
+void null_buf(char **buf, int *size_buf, int *cur_buf)
 {
-    buf = NULL;
+    *buf = NULL;
     *size_buf = 0;
     *cur_buf = 0;
 }
 
-char get_sym(int *pos, int *n) 
+char get_sym(char *stream_buf, int *pos, int *remaining_chars) 
 {
     char c;
-    static char str[BLOCK_SIZE];
 
-    if (*n == 0) {
+    if (*remaining_chars == 0) {
         *pos = 0;
-        *n = read(0, str, BLOCK_SIZE);
+        *remaining_chars = read(0, stream_buf, BLOCK_SIZE);
     }
-    if (--*n >= 0) {
-        c = str[(*pos)++];
-        //fprintf(stderr, "n = %d\n", *n);
+
+    if (--*remaining_chars >= 0) {
+        c = stream_buf[*pos];
+        (*pos)++;
+        //fprintf(stderr, "Remaining_chars = %d\n", *remaining_chars);
         //fprintf(stderr, "Got the symbol %c\n", c);
-    }
-    else {
+    } else {
         c = EOF;
         //fprintf(stderr, "Got the EOF\n");
     }
@@ -121,17 +119,17 @@ char get_sym(int *pos, int *n)
     return c;
 }
 
-void add_sym(int *size_buf, int *cur_buf, char c)
+void add_sym(char **buf, int *size_buf, int *cur_buf, char c)
 {
     if (*cur_buf > *size_buf - 1) {
-        buf = realloc(buf, *size_buf += BUF_SIZE);
-        if (buf == NULL)
+        *buf = realloc(*buf, *size_buf += BUF_SIZE);
+        if (*buf == NULL)
             mem_error();
     }
     //fprintf(stderr, "Character %c will be placed in position %d buf of %d elements\n", c, *cur_buf, *size_buf);
-    buf[*cur_buf] = c;
+    (*buf)[*cur_buf] = c;
     (*cur_buf)++;
-    //fprintf(stderr, "Buffer: %s\n", buf);
+    //fprintf(stderr, "Buffer: %s\n", *buf);
 }
 
 int is_sep(int c)
@@ -147,33 +145,35 @@ int is_word_char(int c)
 int main(void) 
 {
     tree t = NULL;
-    int size_buf = 0, cur_buf = 0, n = 0, pos = 0, c = 0, max_cnt = 0, total_cnt = 0;
+    char *buf = NULL;
+    char stream_buf[BLOCK_SIZE];
+    int size_buf = 0, cur_buf = 0, max_cnt = 0, total_cnt = 0, c, pos = 0, remaining_chars = 0;
 
     vertex V = Start;
-    c = get_sym(&pos, &n);
+    c = get_sym(stream_buf, &pos, &remaining_chars);
 
     while (1)
         switch(V) {
             case Start:
                 if (is_sep(c)) {
-                    c = get_sym(&pos, &n);
+                    c = get_sym(stream_buf, &pos, &remaining_chars);
                 } else if (c == EOF) {
                     while (max_cnt > 0) { // выделить в отдельную функцию
                         print_tree(t, max_cnt, total_cnt);
                         max_cnt--;
                     }
-                    fprintf(stderr, "Total size is %d\n", total_cnt);
+                    //fprintf(stderr, "Total size is %d\n", total_cnt);
                     destruct_tree(t);
                     V = Stop;
                 } else {
-                    null_buf(&size_buf, &cur_buf);
-                    add_sym(&size_buf, &cur_buf, c);
+                    null_buf(&buf, &size_buf, &cur_buf);
+                    add_sym(&buf, &size_buf, &cur_buf, c);
                     if (ispunct(c)) {
                         V = Punctuation;
                     } else {
                         V = Word;
                     }
-                    c = get_sym(&pos, &n);
+                    c = get_sym(stream_buf, &pos, &remaining_chars);
                 }
                 break;
 
@@ -186,8 +186,8 @@ int main(void)
 
             case Word:
                 if (is_word_char(c)) {
-                    add_sym(&size_buf, &cur_buf, c);
-                    c = get_sym(&pos, &n);
+                    add_sym(&buf, &size_buf, &cur_buf, c);
+                    c = get_sym(stream_buf, &pos, &remaining_chars);
                 } else {
                     V = Start;
                     total_cnt++;
