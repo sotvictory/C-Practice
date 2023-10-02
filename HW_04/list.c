@@ -60,6 +60,29 @@ void list_destruct(list lst)
     }
 }
 
+list list_node_delete(int number, list lst)
+{
+    link prev = NULL, cur = lst;
+
+    while (cur != NULL && cur->elem != number) {
+        prev = cur;
+        cur= cur->next;
+    }
+
+    if (cur == NULL) {
+        return lst;
+    }
+
+    if (prev == NULL) {
+        lst = cur->next;
+    } else {
+        prev->next = cur->next;
+    }
+
+    free(cur);
+    return lst;
+}
+
 int main(void)
 {
     list lst = list_create(5);
@@ -70,6 +93,9 @@ int main(void)
     list_insert_end(1, lst);
 
     list_print(lst);
+    lst = list_node_delete(3, lst);
+    list_print(lst);
+
     list_destruct(lst);
 
     return 0;
