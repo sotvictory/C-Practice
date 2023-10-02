@@ -4,8 +4,8 @@
 #include <ctype.h>
 #include <unistd.h>
 
-#define BLOCK_SIZE 128  /* limit on the read characters number */
-#define BUF_SIZE 16
+#define BLOCK_SIZE 128  /* fixed limit on reading characters from a stream */
+#define BUF_SIZE 16     /* initial limit on the number of characters per word */
 
 typedef enum { Start, Stop, Punctuation, Word } vertex;
 
@@ -44,8 +44,6 @@ void print_tree_sorted(tree t, int max_cnt, int total_cnt)
     }
 }
 
-//void print_tree_in_order();
-
 void destruct_tree(tree t)
 {
     if (t == NULL)
@@ -58,7 +56,7 @@ void destruct_tree(tree t)
     free(t);
 }
 
-/* имеет побочный эффект: увеличивает cnt на 1, если слово было найдено */
+/* there is the side effect: increase word count by 1 if the word was found */
 int search_node(tree *t, const char *word, int *max_cnt)
 {
     if (*t == NULL)
@@ -114,7 +112,8 @@ char get_sym(char *stream_buf, int *pos, int *remaining_chars)
         *remaining_chars = read(0, stream_buf, BLOCK_SIZE);
     }
 
-    if (--*remaining_chars >= 0) {
+    if (*remaining_chars > 0) {
+        (*remaining_chars)--;
         c = stream_buf[*pos];
         (*pos)++;
         //fprintf(stderr, "Remaining_chars = %d\n", *remaining_chars);
@@ -167,7 +166,6 @@ int main(void)
                     c = get_sym(stream_buf, &pos, &remaining_chars);
                 } else if (c == EOF) {
                     print_tree_sorted(t, max_cnt, total_cnt);
-                    //fprintf(stderr, "Total size is %d\n", total_cnt);
                     destruct_tree(t);
                     V = Stop;
                 } else {
