@@ -116,11 +116,8 @@ char get_sym(char *stream_buf, int *pos, int *remaining_chars)
         (*remaining_chars)--;
         c = stream_buf[*pos];
         (*pos)++;
-        //fprintf(stderr, "Remaining_chars = %d\n", *remaining_chars);
-        //fprintf(stderr, "Got the symbol %c\n", c);
     } else {
         c = EOF;
-        //fprintf(stderr, "Got the EOF\n");
     }
     
     return c;
@@ -133,10 +130,8 @@ void add_sym(char **buf, int *size_buf, int *cur_buf, char c)
         if (*buf == NULL)
             mem_error();
     }
-    //fprintf(stderr, "Character %c will be placed in position %d buf of %d elements\n", c, *cur_buf, *size_buf);
     (*buf)[*cur_buf] = c;
     (*cur_buf)++;
-    //fprintf(stderr, "Buffer: %s\n", *buf);
 }
 
 int is_sep(int c)
@@ -203,56 +198,6 @@ int main(void)
                 exit(0);
                 break;
         }
-
-    #if 0
-    // last implementation
-
-    tree t = NULL;
-    int buf_size = 16, buf_cnt = 0, max_cnt = 0, total_cnt = 0;
-    char *buf = NULL;
-    char c;
-
-    buf = (char *) malloc(buf_size * sizeof(char));
-    if (buf == NULL)
-        mem_err();
-
-    while ((c = getchar()) && c != EOF ) {
-        if (isalpha(c) && (c != '\n') && (c != ' ') && (c != EOF)) {
-            if (buf_cnt == buf_size) {
-                buf_size = 1.5 * buf_size + 1;
-                buf = (char *) realloc(buf, buf_size);
-                if (buf == NULL)
-                    mem_err();
-            }
-            buf[buf_cnt++] = c;
-        } else if (buf_cnt > 0) {
-            buf = (char *) realloc(buf, (buf_cnt + 1) * sizeof(char));
-            if (buf == NULL)
-                mem_err();
-            buf[buf_cnt] = '\0';
-            total_cnt++;
-            if (search_node(&t, buf, &max_cnt) == 0)
-                add_node(&t, buf);       
-            free(buf);
-            buf = NULL;
-            buf_size = buf_cnt = 0;   
-        } else if (!isalpha(c) && (c != '\n') && (c != ' ') && (c != EOF)) {
-            buf = (char *) malloc(2 * sizeof(char));
-            buf[0] = c;
-            buf[1] = '\0';
-            if (search_node(&t, buf, &max_cnt) == 0)
-                add_node(&t, buf);
-            free(buf);
-        }
-    }
-
-    while (max_cnt > 0) {
-        print_tree(t, max_cnt, total_cnt);
-        max_cnt--;
-    }
-
-    destruct_tree(t);
-    #endif
 
     return 0;
 }
