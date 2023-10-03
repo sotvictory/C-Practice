@@ -179,7 +179,8 @@ int main(void)
                 V = Start;
                 total_cnt++;
                 if (search_node(&t, buf, &max_cnt) == 0)
-                    add_node(&t, buf);        
+                    add_node(&t, buf);
+                free(buf);     
                 break;
 
             case Word:
@@ -191,6 +192,7 @@ int main(void)
                     total_cnt++;
                     if (search_node(&t, buf, &max_cnt) == 0)
                         add_node(&t, buf);
+                    free(buf);  
                 }
                 break;
 
