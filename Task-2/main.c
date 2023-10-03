@@ -3,8 +3,8 @@
 
 enum { 
     row_cnt_1 = 3,
-    col_cnt_1 = 2,
-    row_cnt_2 = 2,
+    col_cnt_1 = 3,
+    row_cnt_2 = 3,
     col_cnt_2 = 3,
 };
 

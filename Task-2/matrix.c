@@ -128,7 +128,14 @@ matrix **product_matrix(matrix **mas_1, int row_cnt_1, int col_cnt_1, matrix **m
     return mas;
 }
 
-matrix** triang_matrix(matrix **mas, int col_cnt)
+void swap_rows(matrix **mas, int row_1, int row_2)
+{
+    matrix *tmp = mas[row_1];
+    mas[row_1] = mas[row_2];
+    mas[row_2] = tmp;
+}
+
+matrix **triang_matrix(matrix **mas, int col_cnt)
 {
     matrix **mas_triangle;
     int i, j, k;
@@ -147,12 +154,28 @@ matrix** triang_matrix(matrix **mas, int col_cnt)
 
     for (k = 0; k < col_cnt - 1; k++) {
         for (i = k + 1; i < col_cnt; i++) {
+            if (mas_triangle[k][k] == 0) {
+                /* Swap rows if the diagonal element is zero */
+                for (j = k + 1; j < col_cnt; j++) {
+                    if (mas_triangle[j][k] != 0) {
+                        swap_rows(mas_triangle, k, j);
+                        break;
+                    }
+                }
+                if (j == col_cnt) {
+                    /* All elements are zero */
+                    continue;
+                }
+            }
             lead_elem = mas_triangle[i][k] / mas_triangle[k][k];
             for (j = k; j < col_cnt; j++) {
                 mas_triangle[i][j] -= lead_elem * mas_triangle[k][j];
             }
         }
     }
+
+    fprintf(stderr, "Triangular matrix 1:\n");
+    print_matrix(mas_triangle, col_cnt, col_cnt);
 
     return mas_triangle;
 }
