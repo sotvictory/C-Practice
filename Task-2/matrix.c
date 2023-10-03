@@ -104,7 +104,7 @@ matrix **product_matrix(matrix **mas_1, int row_cnt_1, int col_cnt_1, matrix **m
     matrix **mas;
     int i, j, k;
 
-    if (row_cnt_1 != row_cnt_2 || col_cnt_1 != col_cnt_2) {
+    if (col_cnt_1 != row_cnt_2) {
         fprintf(stderr, "Cannot calculate the product of matrices: the dimensions do not match\n");
         exit(2);       
     }
@@ -162,6 +162,11 @@ double det_matrix(matrix **mas, int row_cnt, int col_cnt)
     matrix **mas_triangle;
     int i;
     double det = 1;
+
+    if (row_cnt != col_cnt) {
+        fprintf(stderr, "Cannot calculate the determinant of matrix: the matrix is not square\n");
+        exit(2);       
+    }
 
     mas_triangle = triang_matrix(mas, col_cnt);
     for (i = 0; i <  col_cnt; i++)
