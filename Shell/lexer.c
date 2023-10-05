@@ -8,7 +8,18 @@
 #define LEXEME_SIZE 16          /* initial limit on the number of characters per lexeme */
 #define MEMORY_FAILURE -1       /* memory allocation error code */
 
-typedef enum { Start, Word, SingleSpecialChar, DoubleSpecialChar, SingleOr, SingleAnd, SingleGreater, Newline, Stop } vertex;
+typedef enum { 
+    Start, 
+    Word, 
+    SingleSpecialChar, 
+    DoubleSpecialChar, 
+    SingleOr, 
+    SingleAnd, 
+    SingleGreater, 
+    Newline, 
+    Quote, 
+    Stop
+} vertex;
 
 void mem_error(void)
 {
@@ -177,6 +188,10 @@ void build_list(list *lst, int *size_lst)
                     print_list(lst, size_lst);
                     c = get_sym(stream_buf, &pos, &remaining_chars);
                     V = Newline;
+                } else if (c == '"') {
+                    null_lex(&lex, &size_lex, &cur_lex);
+                    c = get_sym(stream_buf, &pos, &remaining_chars);
+                    V = Quote;                   
                 } else {
                     null_lex(&lex, &size_lex, &cur_lex);
                     add_sym(&lex, &size_lex, &cur_lex, c);
@@ -196,7 +211,25 @@ void build_list(list *lst, int *size_lst)
                 break;
 
             case Word:
-                if (sym_set(c)) {
+                if (c == '"') {
+                    c = get_sym(stream_buf, &pos, &remaining_chars);
+                    V = Quote;
+                    break;
+                } else if (sym_set(c)) {
+                    add_sym(&lex, &size_lex, &cur_lex, c);
+                    c = get_sym(stream_buf, &pos, &remaining_chars);
+                } else {
+                    add_word(lst, size_lst, &cur_lst, &lex, &size_lex, &cur_lex);
+                    V = Start;
+                }
+                break;
+
+            case Quote:
+                if (c == '"') {
+                    c = get_sym(stream_buf, &pos, &remaining_chars);
+                    V = Word;
+                    break;
+                } else if (c != '\n' && c != EOF) {
                     add_sym(&lex, &size_lex, &cur_lex, c);
                     c = get_sym(stream_buf, &pos, &remaining_chars);
                 } else {
