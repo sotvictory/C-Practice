@@ -18,6 +18,7 @@ typedef enum {
     SingleGreater, 
     Newline, 
     Quote,
+    Slash,
     Stop
 } vertex;
 
@@ -191,7 +192,11 @@ void build_list(list *lst, int *size_lst)
                 } else if (c == '"') {
                     null_lex(&lex, &size_lex, &cur_lex);
                     c = get_sym(stream_buf, &pos, &remaining_chars);
-                    V = Quote;             
+                    V = Quote;
+                } else if (c == '\\') {
+                    null_lex(&lex, &size_lex, &cur_lex);
+                    c = get_sym(stream_buf, &pos, &remaining_chars);
+                    V = Slash;          
                 } else {
                     null_lex(&lex, &size_lex, &cur_lex);
                     add_sym(&lex, &size_lex, &cur_lex, c);
@@ -215,6 +220,12 @@ void build_list(list *lst, int *size_lst)
                     c = get_sym(stream_buf, &pos, &remaining_chars);
                     V = Quote;
                     break;
+                } else if (c == '\\') {
+                    V = Slash;
+                    break;
+                } else if (c == '#') {
+                    V = Stop;
+                    break;
                 } else if (sym_set(c)) {
                     add_sym(&lex, &size_lex, &cur_lex, c);
                     c = get_sym(stream_buf, &pos, &remaining_chars);
@@ -232,6 +243,17 @@ void build_list(list *lst, int *size_lst)
                 } else if (c != '\n' && c != EOF) {
                     add_sym(&lex, &size_lex, &cur_lex, c);
                     c = get_sym(stream_buf, &pos, &remaining_chars);
+                } else {
+                    add_word(lst, size_lst, &cur_lst, &lex, &size_lex, &cur_lex);
+                    V = Start;
+                }
+                break;
+
+            case Slash:
+                if (c != '\n' && c != EOF) {
+                    add_sym(&lex, &size_lex, &cur_lex, c);
+                    c = get_sym(stream_buf, &pos, &remaining_chars);
+                    V = Word;
                 } else {
                     add_word(lst, size_lst, &cur_lst, &lex, &size_lex, &cur_lex);
                     V = Start;
