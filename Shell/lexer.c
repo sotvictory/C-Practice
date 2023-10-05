@@ -17,7 +17,7 @@ typedef enum {
     SingleAnd, 
     SingleGreater, 
     Newline, 
-    Quote, 
+    Quote,
     Stop
 } vertex;
 
@@ -178,7 +178,7 @@ void build_list(list *lst, int *size_lst)
             case Start:
                 if (c == ' ' || c == '\t') {
                     c = get_sym(stream_buf, &pos, &remaining_chars);
-                } else if (c == EOF) {
+                } else if (c == EOF || c == '#') {
                     term_list(lst, size_lst, &cur_lst);
                     print_list(lst, size_lst);
                     clear_list(lst, size_lst, &cur_lst);
@@ -191,7 +191,7 @@ void build_list(list *lst, int *size_lst)
                 } else if (c == '"') {
                     null_lex(&lex, &size_lex, &cur_lex);
                     c = get_sym(stream_buf, &pos, &remaining_chars);
-                    V = Quote;                   
+                    V = Quote;             
                 } else {
                     null_lex(&lex, &size_lex, &cur_lex);
                     add_sym(&lex, &size_lex, &cur_lex, c);
