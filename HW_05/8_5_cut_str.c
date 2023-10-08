@@ -7,7 +7,6 @@
 int main(int argc, char **argv)
 {
     FILE *in, *out;
-    char buf[MAX_LENGTH + 1];
     char c;
     int cnt = 0;
 
