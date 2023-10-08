@@ -1,10 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define CNT 6
+
 void write_random(char *name, unsigned long int len)
 {
     FILE *fp;
     unsigned long int i;
+    int num;
 
     if (!(fp = fopen(name, "wb"))) {
         fprintf(stderr, "Cannot open file %s\n", name);
@@ -12,9 +15,8 @@ void write_random(char *name, unsigned long int len)
     }
 
     for (i = 0; i < len; i++) {
-        int r[1];
-        r[0] = rand() % 201 - 100;
-        fwrite(r, sizeof(int), 1, fp);
+        num = rand() % 201 - 100;
+        fwrite(&num, sizeof(int), 1, fp);
     }
 
     fclose(fp);
@@ -22,15 +24,15 @@ void write_random(char *name, unsigned long int len)
 
 void exchange_raw(FILE *fp, unsigned long int p1, unsigned long int p2)
 {
-    int tmp, num1, num2;
+    int tmp, num_1, num_2;
 
     fseek(fp, p1 * sizeof(int), SEEK_SET);
-    fread(&num1, sizeof(int), 1, fp);
-    tmp = num1;
+    fread(&num_1, sizeof(int), 1, fp);
+    tmp = num_1;
     fseek(fp, p2 * sizeof(int), SEEK_SET);
-    fread(&num2, sizeof(int), 1, fp);
+    fread(&num_2, sizeof(int), 1, fp);
     fseek(fp, p1 * sizeof(int), SEEK_SET);
-    fwrite(&num2, sizeof(int), 1, fp);
+    fwrite(&num_2, sizeof(int), 1, fp);
     fseek(fp, p2 * sizeof(int), SEEK_SET);
     fwrite(&tmp, sizeof(int), 1, fp);
 }
@@ -57,7 +59,7 @@ int main(int argc, char **argv)
         exit(1);
     }
 
-    write_random(argv[1], 6);
+    write_random(argv[1], CNT);
     getchar(); // pause
 
     if (!(fp = fopen(argv[1], "rb+"))) {
