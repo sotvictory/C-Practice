@@ -36,26 +36,26 @@ void destruct_tree(tree t)
     free(t);
 }
 
-void add_node(tree *t, unsigned int number)
+void add_node(tree *t, int number)
 {
     if (!*t) {
         *t = malloc(sizeof(tnode));
         (*t)->key = number;
         (*t)->left = (*t)->right = NULL;
+    } else {
+        if (number < (*t)->key)
+            add_node(&(*t)->left, number);
+        else if (number > (*t)->key) 
+            add_node(&(*t)->right, number);      
     }
-
-    if (number < (*t)->key)
-        add_node(&(*t)->left, number);
-    if (number > (*t)->key)
-        add_node(&(*t)->right, number);
-
-    return;
 }
 
 void print_tree_layers(tree t, int level)
 {
-    if (t == NULL)
+    if (t == NULL) {
+        printf("NULL ");
         return;
+    }
 
     if (level == 0) {
         printf("%d ", t->key);
@@ -74,9 +74,11 @@ int main(void)
     add_node(&t, 2);
     add_node(&t, 7);
     add_node(&t, 1);
+    add_node(&t, -2);
     add_node(&t, 4);
     add_node(&t, 0);
     add_node(&t, 8);
+    add_node(&t, -6);
 
     h = height(t);
     printf("Height of tree: %d\n", h);
