@@ -46,6 +46,17 @@ void print_list(list lst)
     }
 }
 
+void destruct_list(link lst)
+{
+    link p, q = lst;
+    
+    while (q != NULL) {
+        p = q->next;
+        free(q);
+        q = p;
+    }
+}
+
 int main(void)
 {
     list lst = NULL;
@@ -58,6 +69,8 @@ int main(void)
     print_list(lst);
     putchar('\n');
     printf("%d\n", search_equal(lst));
-    
+
+    destruct_list(lst);
+
     return 0;
 }

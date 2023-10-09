@@ -42,6 +42,17 @@ void print_list_reverse(list lst)
     printf("%.2f ", lst->elem);
 }
 
+void destruct_list(link lst)
+{
+    link p, q = lst;
+    
+    while (q != NULL) {
+        p = q->next;
+        free(q);
+        q = p;
+    }
+}
+
 int main(void)
 {
     list lst = NULL;
@@ -56,5 +67,7 @@ int main(void)
     print_list_reverse(lst);
     putchar('\n');
     
+    destruct_list(lst);
+
     return 0;
 }
