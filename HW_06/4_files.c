@@ -83,12 +83,12 @@ int main(int argc, char **argv)
 
     if (argc < 2) {
         fprintf(stderr, "Too few arguments\n");
-        exit(1);
+        exit(2);
     }
 
     if ((fp = fopen(argv[1], "r+")) == NULL) {
         perror(argv[1]);
-        exit(2);
+        exit(3);
     }
 
     /* empty file */
