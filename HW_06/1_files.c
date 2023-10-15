@@ -1,8 +1,7 @@
-/* duplicate each line in the file */
+/* duplicate each line in a file */
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 int main(int argc, char **argv)
 {
