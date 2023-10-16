@@ -7,7 +7,6 @@
 #define IS_BIG 1
 
 #define READING_FAILURE 1
-#define ENCODING_FAILURE 2
 
 int main(int argc, char **argv)
 {
@@ -50,6 +49,7 @@ int main(int argc, char **argv)
                 for (j = i; j < argc; j++) {
                     if (strcmp(argv[i], "-le") == 0) {
                         fprintf(stderr, "Error: either -be or -le flag must be specified\n");
+                        fprintf(stderr, "Usage: %s [-i input_file] [-o output_file] [-be | -le]\n", argv[0]);
                         exit(READING_FAILURE);
                     }
                 }
@@ -59,6 +59,7 @@ int main(int argc, char **argv)
                 for (j = i; j < argc; j++) {
                     if (strcmp(argv[i], "-be") == 0) {
                         fprintf(stderr, "Error: either -be or -le flag must be specified\n");
+                        fprintf(stderr, "Usage: %s [-i input_file] [-o output_file] [-be | -le]\n", argv[0]);
                         exit(READING_FAILURE);
                     }
                 }
@@ -101,8 +102,8 @@ int main(int argc, char **argv)
                 fwrite(&utf8_3, 1, 1, out);
             }
         } else if (n == 1) {
-            fprintf(stderr, "The file has an incorrect (odd) number of bytes, which is not compatible with the UTF-16 format\n");
-            exit(ENCODING_FAILURE);
+            fprintf(stderr, "The file has an incorrect odd number of bytes, which is not compatible with the UTF-16 format\n");
+            fprintf(stderr, "The file cannot be decoded properly. The file needs to be fixed before converter processing\n");
         } else {
             break;
         }
