@@ -33,12 +33,23 @@ int main(int argc, char **argv)
     }
 
     /* check the byte order */
-    n = fread(&utf16, 1, 2, in);
-    if (utf16 == 0xFEFF) {
+    fread(&utf8_1, 1, 1, in);
+    fread(&utf8_2, 1, 1, in);
+    if ((utf8_1 == 0xFF) && (utf8_2 == 0xFE)) {
         bom = IS_LITTLE;
-    } else if (utf16 == 0xFFFE) {
+    } else if ((utf8_1 == 0xFE) && (utf8_2 == 0xFF)) {
         bom = IS_BIG;
     /* the file does not comply with the agreement */
+    } else if (utf8_1 == 0xFE) {
+        bom = IS_LITTLE;
+        is_bom_set = 1;
+        fseek(in, 1, SEEK_SET);
+        fprintf(stderr, "The file has an incorrect odd number of bytes, which is not compatible with the UTF-16 format\n");
+    } else if (utf8_1 == 0xFF) {
+        bom = IS_BIG;
+        is_bom_set = 1;
+        fseek(in, 1, SEEK_SET);
+        fprintf(stderr, "The file has an incorrect odd number of bytes, which is not compatible with the UTF-16 format\n");
     } else {
         fprintf(stderr, "The file does not comply with the agreement: it does not contain a BOM marker at the beginning of the file\n");
         fseek(in, 0, SEEK_SET);
