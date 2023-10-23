@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
 
@@ -14,7 +13,7 @@ int main(int argc, char **argv)
     int cnt = 0;
 
     if (argc != 3) {
-        fprintf(stderr, "Wrong number of arguments\n");
+        fprintf(stderr, "Usage: %s <input_file> <output_file>\n", argv[0]);
         exit(1);
     }
 

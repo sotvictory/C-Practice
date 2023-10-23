@@ -9,7 +9,7 @@ int main(int argc, char **argv)
     long long num, num_2, min, min_pos, n;
 
     if (argc != 2) {
-        printf("Usage: %s <file_name>\n", argv[0]);
+        fprintf(stderr, "Usage: %s <file_name>\n", argv[0]);
         exit(1);
     }
 
