@@ -166,8 +166,7 @@ void term_list(list *lst, int *size_lst, int *cur_lst)
 
 void build_list(list *lst, int *size_lst)
 {
-    static int cur_lst = 0, cur_lex = 0;
-    int c, size_lex = 0;
+    int cur_lst = 0, cur_lex = 0, size_lex = 0, c;
     lexeme lex = NULL;
 
     vertex V = Start;
