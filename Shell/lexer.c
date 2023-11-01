@@ -75,21 +75,22 @@ void clear_list(list *lst, int *size_lst, int *cur_lst)
     (*lst) = NULL;
 }
 
-int get_sym(char *stream_buf, int *pos, int *remaining_chars) 
+int get_sym(void) 
 {
+    static char stream_buf[BLOCK_SIZE] = {0};
+    static int remaining_chars = 0, pos = 0;
     int c;
 
     /* read a new data block */
-    if (*remaining_chars == 0) {
-        *pos = 0;
-        *remaining_chars = read(0, stream_buf, BLOCK_SIZE);
+    if (remaining_chars == 0) {
+        pos = 0;
+        remaining_chars = read(0, stream_buf, BLOCK_SIZE);
     }
 
     /* get the next character of the read data block */
-    if (*remaining_chars > 0) {
-        (*remaining_chars)--;
-        c = stream_buf[*pos];
-        (*pos)++;
+    if (remaining_chars > 0) {
+        remaining_chars--;
+        c = stream_buf[pos++];
     } else {
         c = EOF;
     }
@@ -165,19 +166,19 @@ void term_list(list *lst, int *size_lst, int *cur_lst)
 
 void build_list(list *lst, int *size_lst)
 {
-    char stream_buf[BLOCK_SIZE] = {0};
-    int cur_lst = 0, size_lex = 0, cur_lex = 0, remaining_chars = 0, pos = 0, c;
+    static int cur_lst = 0, cur_lex = 0;
+    int c, size_lex = 0;
     lexeme lex = NULL;
-    vertex V = Start;
 
-    c = get_sym(stream_buf, &pos, &remaining_chars);
+    vertex V = Start;
+    c = get_sym();
     null_list(lst, size_lst, &cur_lst);
 
     while (1) {
         switch(V) {
             case Start:
                 if (c == ' ' || c == '\t') {
-                    c = get_sym(stream_buf, &pos, &remaining_chars);
+                    c = get_sym();
                 } else if (c == EOF || c == '#') {
                     term_list(lst, size_lst, &cur_lst);
                     print_list(lst, size_lst);
@@ -186,15 +187,15 @@ void build_list(list *lst, int *size_lst)
                 } else if (c == '\n') {
                     term_list(lst, size_lst, &cur_lst);
                     print_list(lst, size_lst);
-                    c = get_sym(stream_buf, &pos, &remaining_chars);
+                    c = get_sym();
                     V = Newline;
                 } else if (c == '"') {
                     null_lex(&lex, &size_lex, &cur_lex);
-                    c = get_sym(stream_buf, &pos, &remaining_chars);
+                    c = get_sym();
                     V = Quote;
                 } else if (c == '\\') {
                     null_lex(&lex, &size_lex, &cur_lex);
-                    c = get_sym(stream_buf, &pos, &remaining_chars);
+                    c = get_sym();
                     V = Slash;          
                 } else {
                     null_lex(&lex, &size_lex, &cur_lex);
@@ -210,13 +211,13 @@ void build_list(list *lst, int *size_lst)
                     } else {
                         V = Word;
                     }
-                    c = get_sym(stream_buf, &pos, &remaining_chars);
+                    c = get_sym();
                 }
                 break;
 
             case Word:
                 if (c == '"') {
-                    c = get_sym(stream_buf, &pos, &remaining_chars);
+                    c = get_sym();
                     V = Quote;
                     break;
                 } else if (c == '\\') {
@@ -227,7 +228,7 @@ void build_list(list *lst, int *size_lst)
                     break;
                 } else if (sym_set(c)) {
                     add_sym(&lex, &size_lex, &cur_lex, c);
-                    c = get_sym(stream_buf, &pos, &remaining_chars);
+                    c = get_sym();
                 } else {
                     add_word(lst, size_lst, &cur_lst, &lex, &size_lex, &cur_lex);
                     V = Start;
@@ -236,12 +237,12 @@ void build_list(list *lst, int *size_lst)
 
             case Quote:
                 if (c == '"') {
-                    c = get_sym(stream_buf, &pos, &remaining_chars);
+                    c = get_sym();
                     V = Word;
                     break;
                 } else if (c != '\n' && c != EOF) {
                     add_sym(&lex, &size_lex, &cur_lex, c);
-                    c = get_sym(stream_buf, &pos, &remaining_chars);
+                    c = get_sym();
                 } else {
                     add_word(lst, size_lst, &cur_lst, &lex, &size_lex, &cur_lex);
                     V = Start;
@@ -251,7 +252,7 @@ void build_list(list *lst, int *size_lst)
             case Slash:
                 if (c != '\n' && c != EOF) {
                     add_sym(&lex, &size_lex, &cur_lex, c);
-                    c = get_sym(stream_buf, &pos, &remaining_chars);
+                    c = get_sym();
                     V = Word;
                 } else {
                     add_word(lst, size_lst, &cur_lst, &lex, &size_lex, &cur_lex);
@@ -262,7 +263,7 @@ void build_list(list *lst, int *size_lst)
             case SingleOr:
                 if (c == '|') {
                     add_sym(&lex, &size_lex, &cur_lex, c);
-                    c = get_sym(stream_buf, &pos, &remaining_chars);
+                    c = get_sym();
                     V = DoubleSpecialChar;
                 } else {
                     add_word(lst, size_lst, &cur_lst, &lex, &size_lex, &cur_lex);
@@ -273,7 +274,7 @@ void build_list(list *lst, int *size_lst)
             case SingleAnd:
                 if (c == '&') {
                     add_sym(&lex, &size_lex, &cur_lex, c);
-                    c = get_sym(stream_buf, &pos, &remaining_chars);
+                    c = get_sym();
                     V = DoubleSpecialChar;
                 } else {
                     add_word(lst, size_lst, &cur_lst, &lex, &size_lex, &cur_lex);
@@ -284,7 +285,7 @@ void build_list(list *lst, int *size_lst)
             case SingleGreater:
                 if (c == '>') {
                     add_sym(&lex, &size_lex, &cur_lex, c);
-                    c = get_sym(stream_buf, &pos, &remaining_chars);
+                    c = get_sym();
                     V = DoubleSpecialChar;
                 } else {
                     add_word(lst, size_lst, &cur_lst, &lex, &size_lex, &cur_lex);
