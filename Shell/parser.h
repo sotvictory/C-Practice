@@ -19,10 +19,8 @@ typedef struct cmd_inf {
 
 typedef struct cmd_inf *tree;
 
-list plex;
-
-void print_tree(); 
-tree clear_tree();
-tree build_tree(); 
+void print_tree(tree t, int shift);
+tree clear_tree(tree cmd);
+tree build_tree(tree *cmd);
 
 #endif /* PARSER_H */
