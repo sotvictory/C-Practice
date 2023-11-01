@@ -7,9 +7,10 @@
 
 ## BNF
 ```
-<shell_cmd> ::= <list_of_cmd>
-<list_of_cmd> ::= <pipe> {[one of &, &&, ||, ;] <pipe>} [&, ;]
-<pipe> ::= <cmd> {| <cmd>}
-<cmd> ::= <simple_cmd> | (<list_of_cmd>) [< <file_name>] [[one of  >, >>] <file_name>]
-<simple_cmd> ::= <file_name> {<arg>} [< <file_name>] [[one of >, >>] <file_name>]
+<shell_cmd> ::= <cmd_list>
+<cmd_list> ::= <pipe> {["&" | "&&" | "||" | ";"] <pipe>} ["&" | ";"]
+<pipe> ::= <cmd> {"|" <cmd>}
+<cmd> ::= (<cmd_list>) <io_redireсtion>
+<io_redireсtion> ::= ["<" <file_name>] [[">" | "»"] <file_name>] |
+    [[">" | "»"] <file_name>] ["<" <file_name>]
 ```
