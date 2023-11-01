@@ -1,11 +1,18 @@
 # Shell
 
 ## Pipeline
-- [x] Lexer
-- [ ] Parser
-- [ ] Interpreter
+- [x] Lexer (Task 5_1)
+- [ ] Parser (Task 5_2 — 5_all) — in progress
+- [ ] Interpreter (Task 5_2 — 5_all)
+
+To test `Lexer` module:
+```shell
+gcc -Wall -Werror lexer.h lexer.c test_lexer.c -o lexer
+./lexer
+```
 
 ## Lexer L-Graph
+soon...
 
 ## Parser BNF
 ```
