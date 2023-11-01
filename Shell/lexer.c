@@ -75,9 +75,9 @@ void clear_list(list *lst, int *size_lst, int *cur_lst)
     (*lst) = NULL;
 }
 
-char get_sym(char *stream_buf, int *pos, int *remaining_chars) 
+int get_sym(char *stream_buf, int *pos, int *remaining_chars) 
 {
-    char c;
+    int c;
 
     /* read a new data block */
     if (*remaining_chars == 0) {
@@ -166,7 +166,7 @@ void term_list(list *lst, int *size_lst, int *cur_lst)
 void build_list(list *lst, int *size_lst)
 {
     char stream_buf[BLOCK_SIZE] = {0};
-    int cur_lst = 0, size_lex = 0, cur_lex = 0, remaining_chars = 0, pos = 0, quote_cnt = 0, c;
+    int cur_lst = 0, size_lex = 0, cur_lex = 0, remaining_chars = 0, pos = 0, c;
     lexeme lex = NULL;
     vertex V = Start;
 
@@ -175,7 +175,6 @@ void build_list(list *lst, int *size_lst)
 
     while (1) {
         switch(V) {
-
             case Start:
                 if (c == ' ' || c == '\t') {
                     c = get_sym(stream_buf, &pos, &remaining_chars);
