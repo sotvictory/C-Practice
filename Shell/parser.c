@@ -7,7 +7,12 @@
 #define PRINT_SHIFT 5
 #define MEMORY_FAILURE -1
 
-void mem_error(void)
+static tree get_cmd_lst(list lst, int size_lst);
+static tree get_pipe(list lst, int size_lst);
+static tree get_cmd(list lst, int size_lst);
+
+// TODO: error handling
+void mem_err(void)
 {
     fprintf(stderr, "Memory allocation did not occur. Exit\n");
     exit(MEMORY_FAILURE);
@@ -19,55 +24,53 @@ void make_shift(int shift)
         fprintf(stderr, " ");
 }
 
-void print_argv(list p, int shift)
+void print_argv(list args, int shift)
 {
-    int i;
-
-    for (i = 0; p[i] != NULL; i++) {
+    for (int i = 0; args[i] != NULL; i++) {
         make_shift(shift);
-        fprintf(stderr, "argv[%d] = %s\n", i, p[i]);
+        fprintf(stderr, "argv[%d] = %s\n", i, args[i]);
     }
 }
 
-void print_tree(tree t, int shift)
+void print_tree(tree cmd, int shift)
 {
-    if (t == NULL)
+    if (cmd == NULL)
         return;
 
-    if (t->argv != NULL) {
-        print_argv(t->argv, shift);
+    if (cmd->argv != NULL) {
+        print_argv(cmd->argv, shift);
     } else {
         make_shift(shift);
         fprintf(stderr, "psubshell\n");
     }
 
     make_shift(shift);
-    fprintf(stderr, "infile = %s\n", t->infile == NULL ? "NULL" : t->infile);
+    fprintf(stderr, "infile = %s\n", cmd->infile == NULL ? "NULL" : cmd->infile);
     make_shift(shift);
-    fprintf(stderr, "outfile = %s\n", t->outfile == NULL ? "NULL" : t->outfile);
+    fprintf(stderr, "outfile = %s\n", cmd->outfile == NULL ? "NULL" : cmd->outfile);
     make_shift(shift);
-    fprintf(stderr, "append = %d\n", t->append);
+    fprintf(stderr, "append = %d\n", cmd->append);
     make_shift(shift);
-    fprintf(stderr, "background = %d\n", t->background);
+    fprintf(stderr, "background = %d\n", cmd->background);
     make_shift(shift);
-    fprintf(stderr, "connection type = %s\n", t->type == NXT ? "NXT" : t->type == OR ? "OR" : "AND");
+    fprintf(stderr, "connection type = %s\n", cmd->type == NEXT ? "NEXT" : cmd->type == OR ? "OR" : "AND");
 
-    if (t->psubcmd != NULL) {
+    if (cmd->psubcmd != NULL) {
         make_shift(shift);
         fprintf(stderr, "psubcmd--->\n");
-        print_tree(t->psubcmd, shift + PRINT_SHIFT);
+        print_tree(cmd->psubcmd, shift + PRINT_SHIFT);
     }
 
-    if (t->pipe != NULL) {
+    if (cmd->pipe != NULL) {
         make_shift(shift);
         fprintf(stderr, "pipe--->\n");
-        print_tree(t->pipe, shift + PRINT_SHIFT);
+        print_tree(cmd->pipe, shift + PRINT_SHIFT);
     }
 
-    if (t->next != NULL) {
+    if (cmd->next != NULL) {
         make_shift(shift);
         fprintf(stderr, "next--->\n");
-        print_tree(t->next, shift + PRINT_SHIFT);
+        print_tree(cmd->next, shift + PRINT_SHIFT);
     }
 }
 
@@ -85,23 +88,86 @@ tree clear_tree(tree cmd)
 	return NULL;
 }
 
-lexeme get_lexeme(list lst, int size_lst)
+static lexeme get_lex(list lst, int size_lst)
 {
     static int read_lexemes = 0;
 
 	return (read_lexemes < size_lst - 1) ? lst[read_lexemes++] : NULL;
 }
 
-/* <cmd_list> ::= <pipe> {["&" | "&&" | "||" | ";"] <pipe>} ["&" | ";"] */
-tree get_cmd_lst(list lst, int size_lst)
+void set_background(tree cmd, int is_same_command) 
 {
-    return NULL;
+    if (cmd == NULL)
+        return;
+
+    /* Find the last command in the pipeline */
+    if (is_same_command == 1) {
+        tree cur_cmd = cmd;
+        while (cur_cmd->next != NULL) {
+            if (cur_cmd->type == NEXT)
+                cmd = cur_cmd->next;
+            cur_cmd = cur_cmd->next;
+        }
+    }
+
+    /* Set the background flag for the current command */
+    cmd->background = 1;
+
+    /* Set the background flag for sub-commands */
+    set_background(cmd->pipe, 0);
+    set_background(cmd->psubcmd, 0);
+    if (cmd->type != NEXT)
+        set_background(cmd->next, 0);
+}
+
+/* <cmd_list> ::= <pipe> {["&" | "&&" | "||" | ";"] <pipe>} ["&" | ";"] */
+static tree get_cmd_lst(list lst, int size_lst)
+{
+    tree pipe, last_pipe;
+    lexeme sep;
+
+    if ((last_pipe = pipe = get_pipe(lst, size_lst)) == NULL)
+        return NULL;
+
+    while ((sep = get_lex(lst, size_lst)) != NULL) {
+        if (strcmp(sep, "&") == 0) {
+            last_pipe->type = NEXT;
+            set_background(pipe, 1);
+        } else if (strcmp(sep, ";") == 0) {
+            last_pipe->type = NEXT;
+        } else if (strcmp(sep, "&&") == 0) {
+            last_pipe->type = AND;
+        } else if (strcmp(sep, "||") == 0) {
+            last_pipe->type = OR;
+        } else {
+            //TODO: errors
+        }
+        if (last_pipe->next != NULL)
+            last_pipe = last_pipe->next;
+    }
+
+    return pipe;
 }
 
 /* <pipe> ::= <cmd> {"|" <cmd>} */
-tree get_pipe(list lst, int size_lst)
+static tree get_pipe(list lst, int size_lst)
 {
-    return NULL;
+    tree pipe, last_cmd;
+    lexeme sep;
+
+    if ((last_cmd = pipe = get_cmd(lst, size_lst)) == NULL)
+        return NULL;
+
+    while ((sep = get_lex(lst, size_lst)) != NULL) {
+        if (!strcmp(sep, "&") || !strcmp(sep, "&&") || !strcmp(sep, "||") || !strcmp(sep, ";")) {
+            break;
+        } else {
+            // TODO: errors
+        }
+        last_cmd = last_cmd->pipe;
+    }
+
+    return pipe;
 }
 
 void null_cmd(tree *cmd)
@@ -114,44 +180,46 @@ void null_cmd(tree *cmd)
     (*cmd)->psubcmd = NULL;
     (*cmd)->pipe = NULL;
     (*cmd)->next = NULL;
-    (*cmd)->type = NXT;
+    (*cmd)->type = NEXT;
 }
 
 /* <cmd> ::= (<cmd_list>) <io_redireсtion> */
-tree get_cmd(list lst, int size_lst)
+static tree get_cmd(list lst, int size_lst)
 {
     tree cmd;
     lexeme lex;
 
-    if ((cmd = malloc(sizeof(tree)) == NULL))
+    if ((cmd = malloc(sizeof(cmd_inf))) == NULL)
         mem_err();
     null_cmd(&cmd);
 
-    while ((lex = get_lexeme(lst, size_lst)) != NULL) {
+    while ((lex = get_lex(lst, size_lst)) != NULL) {
         /* subshell */
-        if (!strcmp(lex, "(")) {
+        if (strcmp(lex, "(") == 0) {
             // subshell: get_cmd_list
-        } else if (!strcmp(lex, ")")){
+        } else if (strcmp(lex, ")") == 0){
             // subshell: check correct input
         /* Input redirection */
-        } else if (!strcmp(lex, "<")) {
-            cmd->infile = get_lexeme(lst, size_lst);
+        } else if (strcmp(lex, "<") == 0) {
+            cmd->infile = get_lex(lst, size_lst);
         /* Output redirection: append mode */
-        } else if (!strcmp(lex, ">>")) {
-            cmd->outfile = get_lexeme(lst, size_lst);
+        } else if (strcmp(lex, ">>") == 0) {
+            cmd->outfile = get_lex(lst, size_lst);
             cmd->append = 1;
         /* Output redirection: write mode */
-        } else if (!strcmp(lex, ">")) {
-            cmd->outfile = get_lexeme(lst, size_lst);
+        } else if (strcmp(lex, ">") == 0) {
+            cmd->outfile = get_lex(lst, size_lst);
 		}
     }
     
     return cmd;
 }
 
-tree build_tree(tree *cmd)
+tree build_tree(list lst, int size_lst)
 {
-    //static brackets_cnt = 0;
+    //int brackets_cnt = 0, cur_cmd = 0;
 
-    return NULL;
+	tree t = get_cmd_lst(lst, size_lst);
+
+    return t;
 }

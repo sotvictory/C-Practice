@@ -3,7 +3,13 @@
 
 #include "lexer.h"
 
-typedef enum next_type {NXT, AND, OR} next_type;
+typedef enum next_type {
+    NEXT, 
+    AND, 
+    OR
+} next_type;
+
+typedef struct cmd_inf *tree;
 
 typedef struct cmd_inf {
     list argv;              /* list of command name and its arguments */
@@ -11,16 +17,14 @@ typedef struct cmd_inf {
     char *outfile;          /* redirected standart output file */
     int append;             /* 1, if append mode enabled */
     int background;         /* 1, if background mode endabled */
-    cmd_inf *psubcmd;       /* subshell */
-    cmd_inf *pipe;          /* next command after "|" */
-    cmd_inf *next;          /* next command after "&" or ";" */
+    tree psubcmd;           /* subshell */
+    tree pipe;              /* next command after "|" */
+    tree next;              /* next command after "&" or ";" */
     next_type type;         /* type of neighboring commands connection */
 } cmd_inf;
 
-typedef struct cmd_inf *tree;
-
 void print_tree(tree t, int shift);
 tree clear_tree(tree cmd);
-tree build_tree(tree *cmd);
+tree build_tree(list lst, int size_lst);
 
 #endif /* PARSER_H */

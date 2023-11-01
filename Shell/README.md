@@ -5,7 +5,9 @@
 - [ ] Parser
 - [ ] Interpreter
 
-## BNF
+## Lexer L-Graph
+
+## Parser BNF
 ```
 <shell_cmd> ::= <cmd_list>
 <cmd_list> ::= <pipe> {["&" | "&&" | "||" | ";"] <pipe>} ["&" | ";"]

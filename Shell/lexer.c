@@ -4,7 +4,7 @@
 #include <string.h>
 #include "lexer.h"
 
-#define BLOCK_SIZE 256          /* fixed limit on reading characters from a stream */
+#define BLOCK_SIZE 1024         /* fixed limit on reading characters from a stream */
 #define LEXEME_SIZE 16          /* initial limit on the number of characters per lexeme */
 #define MEMORY_FAILURE -1       /* memory allocation error code */
 
