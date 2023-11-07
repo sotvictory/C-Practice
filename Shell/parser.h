@@ -3,6 +3,8 @@
 
 #include "lexer.h"
 
+#define PRINT_SHIFT 5
+
 typedef enum next_type {
     NEXT, 
     AND, 
