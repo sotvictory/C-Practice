@@ -6,64 +6,64 @@
 
 #define BLOCK_SIZE 1024         /* fixed limit on reading characters from a stream */
 #define LEXEME_SIZE 16          /* initial limit on the number of characters per lexeme */
+
 #define MEMORY_FAILURE -1       /* memory allocation error code */
 
 typedef enum { 
-    Start, 
-    Word, 
-    SingleSpecialChar, 
-    DoubleSpecialChar, 
-    SingleOr, 
-    SingleAnd, 
-    SingleGreater, 
-    Newline, 
-    Quote,
-    Slash,
-    Stop
+    START, 
+    WORD, 
+    SINGLE_SPECIAL_CHAR, 
+    DOUBLE_SPECIAL_CHAR, 
+    SINGLE_OR, 
+    SINGLE_AND, 
+    SINGLE_GREATER, 
+    QUOTE,
+    SLASH,
+    STOP
 } vertex;
 
-void mem_error(void)
+static void mem_error(list *lst, int *size_lst)
 {
+    clear_list(lst, size_lst);
     fprintf(stderr, "Memory allocation did not occur. Exit\n");
     exit(MEMORY_FAILURE);
 }
 
-void null_list(list *lst, int *size_lst, int *cur_lst)
+static void null_list(list *lst, int *size_lst, int *cur_lst)
 {
     *lst = NULL;
     *size_lst = 0;
     *cur_lst = 0;
 }
 
-void null_lex(lexeme *lex, int *size_lex, int *cur_lex)
+static void null_lex(lexeme *lex, int *size_lex, int *cur_lex)
 {
     *lex = NULL;
     *size_lex = 0;
     *cur_lex = 0;
 }
 
-int sym_set(int c) 
+static int sym_set(int c) 
 {
     return c != '\n' && c != ' ' && c != '\t' && c != EOF && c != ';' && 
            c != '<' && c != '(' && c != ')' && c != '|' && c != '&' && c != '>';
 }
 
-void print_list(list *lst, int *size_lst)
+void print_list(list lst, int size_lst)
 {
     int i;
 
-    if (*lst == NULL) 
+    if (lst == NULL) 
         return;
 
-    for (i = 0; i < *size_lst - 1; i++)
-        printf("%s\n", (*lst)[i]);
+    for (i = 0; i < size_lst - 1; i++)
+        printf("%s\n", lst[i]);
 }
 
-void clear_list(list *lst, int *size_lst, int *cur_lst)
+void clear_list(list *lst, int *size_lst)
 {
     int i;
     *size_lst = 0;
-    *cur_lst = 0;
 
     if (*lst == NULL) 
         return;
@@ -75,7 +75,7 @@ void clear_list(list *lst, int *size_lst, int *cur_lst)
     (*lst) = NULL;
 }
 
-int get_sym(void) 
+static int get_sym(int fd) 
 {
     static char stream_buf[BLOCK_SIZE] = {0};
     static int remaining_chars = 0, pos = 0;
@@ -84,7 +84,7 @@ int get_sym(void)
     /* read a new data block */
     if (remaining_chars == 0) {
         pos = 0;
-        remaining_chars = read(0, stream_buf, BLOCK_SIZE);
+        remaining_chars = read(fd, stream_buf, BLOCK_SIZE);
     }
 
     /* get the next character of the read data block */
@@ -98,14 +98,14 @@ int get_sym(void)
     return c;
 }
 
-void add_sym(lexeme *lex, int *size_lex, int *cur_lex, char c)
+static void add_sym(list *lst, int *size_lst, lexeme *lex, int *size_lex, int *cur_lex, char c)
 {
     /* increase lexeme size if necessary */
     if (*cur_lex > *size_lex - 1) {
         *size_lex += LEXEME_SIZE;
         *lex = realloc(*lex, *size_lex);
         if (*lex == NULL)
-            mem_error();
+            mem_error(lst, size_lst);
     }
 
     /* add symbol to lexeme */
@@ -113,14 +113,14 @@ void add_sym(lexeme *lex, int *size_lex, int *cur_lex, char c)
     (*cur_lex)++;
 }
 
-void add_word(list *lst, int *size_lst, int *cur_lst, lexeme *lex, int *size_lex, int *cur_lex) 
+static void add_word(list *lst, int *size_lst, int *cur_lst, lexeme *lex, int *size_lex, int *cur_lex) 
 {
     /* increase lexeme size to write '\0' if necessary */
     if (*cur_lex > *size_lex - 1) {
         *size_lex += 1;
         *lex = realloc(*lex, *size_lex);
         if (*lex == NULL)
-            mem_error();
+            mem_error(lst, size_lst);
     }
     (*lex)[*cur_lex] = '\0';
     (*cur_lex)++;
@@ -129,14 +129,14 @@ void add_word(list *lst, int *size_lst, int *cur_lst, lexeme *lex, int *size_lex
     *size_lex = *cur_lex;
     *lex = realloc(*lex, *size_lex);
     if (*lex == NULL)
-        mem_error();
+        mem_error(lst, size_lst);
 
     /* increase list size if necessary */
     if (*cur_lst > *size_lst - 1) {
         *size_lst += LEXEME_SIZE;
         *lst = realloc(*lst, *size_lst * sizeof(list));
         if (*lst == NULL)
-            mem_error();
+            mem_error(lst, size_lst);
     }
 
     /* add lexeme to list */
@@ -144,7 +144,7 @@ void add_word(list *lst, int *size_lst, int *cur_lst, lexeme *lex, int *size_lex
     (*cur_lst)++;
 }
 
-void term_list(list *lst, int *size_lst, int *cur_lst)
+static void term_list(list *lst, int *size_lst, int *cur_lst)
 {
     if (*lst == NULL) 
         return;
@@ -153,7 +153,7 @@ void term_list(list *lst, int *size_lst, int *cur_lst)
     if (*cur_lst > *size_lst - 1) {
         *lst = realloc(*lst, (*size_lst + 1) * sizeof(list));
         if (*lst == NULL)
-            mem_error();
+            mem_error(lst, size_lst);
     }
     (*lst)[*cur_lst] = NULL;
 
@@ -161,149 +161,137 @@ void term_list(list *lst, int *size_lst, int *cur_lst)
     *size_lst = *cur_lst + 1;
     *lst = realloc(*lst, *size_lst * sizeof(list));
     if (*lst == NULL)
-        mem_error();
+        mem_error(lst, size_lst);
 }
 
-void build_list(list *lst, int *size_lst)
+void build_list(list *lst, int *size_lst, int fd)
 {
     int cur_lst = 0, cur_lex = 0, size_lex = 0, c;
     lexeme lex = NULL;
 
-    vertex V = Start;
-    c = get_sym();
+    vertex V = START;
+    c = get_sym(fd);
     null_list(lst, size_lst, &cur_lst);
 
     while (1) {
         switch(V) {
-            case Start:
+            case START:
                 if (c == ' ' || c == '\t') {
-                    c = get_sym();
-                } else if (c == EOF || c == '#') {
+                    c = get_sym(fd);
+                } else if (c == EOF || c == '#' || c == '\n') {
                     term_list(lst, size_lst, &cur_lst);
-                    print_list(lst, size_lst);
-                    clear_list(lst, size_lst, &cur_lst);
-                    V = Stop;
-                } else if (c == '\n') {
-                    term_list(lst, size_lst, &cur_lst);
-                    print_list(lst, size_lst);
-                    c = get_sym();
-                    V = Newline;
+                    V = STOP;
                 } else if (c == '"') {
                     null_lex(&lex, &size_lex, &cur_lex);
-                    c = get_sym();
-                    V = Quote;
+                    c = get_sym(fd);
+                    V = QUOTE;
                 } else if (c == '\\') {
                     null_lex(&lex, &size_lex, &cur_lex);
-                    c = get_sym();
-                    V = Slash;          
+                    c = get_sym(fd);
+                    V = SLASH;          
                 } else {
                     null_lex(&lex, &size_lex, &cur_lex);
-                    add_sym(&lex, &size_lex, &cur_lex, c);
+                    add_sym(lst, size_lst, &lex, &size_lex, &cur_lex, c);
                     if (c == ';' || c == '<' || c == '(' || c == ')') {
-                        V = SingleSpecialChar;
+                        V = SINGLE_SPECIAL_CHAR;
                     } else if (c == '|') {
-                        V = SingleOr;
+                        V = SINGLE_OR;
                     } else if (c == '&') {
-                        V = SingleAnd;
+                        V = SINGLE_AND;
                     } else if (c == '>') {
-                        V = SingleGreater;
+                        V = SINGLE_GREATER;
                     } else {
-                        V = Word;
+                        V = WORD;
                     }
-                    c = get_sym();
+                    c = get_sym(fd);
                 }
                 break;
 
-            case Word:
+            case WORD:
                 if (c == '"') {
-                    c = get_sym();
-                    V = Quote;
+                    c = get_sym(fd);
+                    V = QUOTE;
                     break;
                 } else if (c == '\\') {
-                    V = Slash;
+                    V = SLASH;
                     break;
                 } else if (c == '#') {
-                    V = Stop;
+                    V = STOP;
                     break;
                 } else if (sym_set(c)) {
-                    add_sym(&lex, &size_lex, &cur_lex, c);
-                    c = get_sym();
+                    add_sym(lst, size_lst, &lex, &size_lex, &cur_lex, c);
+                    c = get_sym(fd);
                 } else {
                     add_word(lst, size_lst, &cur_lst, &lex, &size_lex, &cur_lex);
-                    V = Start;
+                    V = START;
                 }
                 break;
 
-            case Quote:
+            case QUOTE:
                 if (c == '"') {
-                    c = get_sym();
-                    V = Word;
+                    c = get_sym(fd);
+                    V = WORD;
                     break;
                 } else if (c != '\n' && c != EOF) {
-                    add_sym(&lex, &size_lex, &cur_lex, c);
-                    c = get_sym();
+                    add_sym(lst, size_lst, &lex, &size_lex, &cur_lex, c);
+                    c = get_sym(fd);
                 } else {
                     add_word(lst, size_lst, &cur_lst, &lex, &size_lex, &cur_lex);
-                    V = Start;
+                    V = START;
                 }
                 break;
 
-            case Slash:
+            case SLASH:
                 if (c != '\n' && c != EOF) {
-                    add_sym(&lex, &size_lex, &cur_lex, c);
-                    c = get_sym();
-                    V = Word;
+                    add_sym(lst, size_lst, &lex, &size_lex, &cur_lex, c);
+                    c = get_sym(fd);
+                    V = WORD;
                 } else {
                     add_word(lst, size_lst, &cur_lst, &lex, &size_lex, &cur_lex);
-                    V = Start;
+                    V = START;
                 }
                 break;
 
-            case SingleOr:
+            case SINGLE_OR:
                 if (c == '|') {
-                    add_sym(&lex, &size_lex, &cur_lex, c);
-                    c = get_sym();
-                    V = DoubleSpecialChar;
+                    add_sym(lst, size_lst, &lex, &size_lex, &cur_lex, c);
+                    c = get_sym(fd);
+                    V = DOUBLE_SPECIAL_CHAR;
                 } else {
                     add_word(lst, size_lst, &cur_lst, &lex, &size_lex, &cur_lex);
-                    V = Start;
+                    V = START;
                 }
                 break;
 
-            case SingleAnd:
+            case SINGLE_AND:
                 if (c == '&') {
-                    add_sym(&lex, &size_lex, &cur_lex, c);
-                    c = get_sym();
-                    V = DoubleSpecialChar;
+                    add_sym(lst, size_lst, &lex, &size_lex, &cur_lex, c);
+                    c = get_sym(fd);
+                    V = DOUBLE_SPECIAL_CHAR;
                 } else {
                     add_word(lst, size_lst, &cur_lst, &lex, &size_lex, &cur_lex);
-                    V = Start;
+                    V = START;
                 }
                 break;
 
-            case SingleGreater:
+            case SINGLE_GREATER:
                 if (c == '>') {
-                    add_sym(&lex, &size_lex, &cur_lex, c);
-                    c = get_sym();
-                    V = DoubleSpecialChar;
+                    add_sym(lst, size_lst, &lex, &size_lex, &cur_lex, c);
+                    c = get_sym(fd);
+                    V = DOUBLE_SPECIAL_CHAR;
                 } else {
                     add_word(lst, size_lst, &cur_lst, &lex, &size_lex, &cur_lex);
-                    V = Start;
+                    V = START;
                 }
                 break;
 
-            case SingleSpecialChar:
-            case DoubleSpecialChar:
+            case SINGLE_SPECIAL_CHAR:
+            case DOUBLE_SPECIAL_CHAR:
                 add_word(lst, size_lst, &cur_lst, &lex, &size_lex, &cur_lex);
-                V = Start;
+                V = START;
                 break;
 
-            case Newline:
-                clear_list(lst, size_lst, &cur_lst);
-                V = Start;
-                break;
-
-            case Stop:
+            case STOP:
                 return;
         }
     }
