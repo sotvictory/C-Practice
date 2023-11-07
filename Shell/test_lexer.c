@@ -20,7 +20,8 @@ int main(int argc, char **argv)
 
     build_list(&lst, &size_lst, fd);
     print_list(lst, size_lst);
-
+    clear_list(&lst, &size_lst);
+    
     close(fd);
     
     return 0;
