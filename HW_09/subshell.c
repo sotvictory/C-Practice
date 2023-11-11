@@ -8,7 +8,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-enum { INP_ERR, FORK_ERR, OPEN_ERR, EXEC_ERR };
+enum { INP_ERR, FORK_ERR, EXEC_ERR, PIPE_ERR };
 
 /* ((pr1 | pr2 ); pr3) | pr4 */
 
@@ -24,7 +24,10 @@ int main(int argc, char **argv)
 
     fd0 = dup(0);
     fd1 = dup(1);
-    pipe(fds1);
+    if (pipe(fds1) < 0) {
+        fprintf(stderr, "pipe() failed: %s\n", strerror(errno));
+        exit(PIPE_ERR);
+    }
     dup2(fds1[1], 1);
 
     /* pr1 */
@@ -40,7 +43,10 @@ int main(int argc, char **argv)
     close(fds2[1]);
     dup2(fds2[0],0);
 
-    pipe(fds1);
+    if (pipe(fds1) < 0) {
+        fprintf(stderr, "pipe() failed: %s\n", strerror(errno));
+        exit(PIPE_ERR);
+    }
     dup2(fds1[1],1);
 
     /* pr2 */
@@ -83,7 +89,7 @@ int main(int argc, char **argv)
     }
 
     close(fds1[0]);
-    
+
     wait(NULL);
 
     return 0;
