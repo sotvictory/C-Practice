@@ -13,6 +13,12 @@ ps ax
 ls -l /proc/<prog PID>/fd
 ```
 
+Проверить дедлоки:
+```
+gdb <program> <PID>
+bt
+```
+
 # Руденко:
 
 `ioredirect.c` (8.18 d):
@@ -22,7 +28,7 @@ pr1 < f.dat > f.res
 
 `subshell.c` (8.18 h):
 ``` shell
-((pr1 | pr2 ); pr3) | pr4
+((pr1 | pr2); pr3) | pr4
 ```
 
 # Казачук (синяя книга): 

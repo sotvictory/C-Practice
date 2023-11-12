@@ -33,7 +33,6 @@ int main(int argc, char **argv)
         fprintf(stderr, "fork() failed: %s\n", strerror(errno));
         exit(FORK_ERR);          
     } else if (pid_sub1 == 0) {
-        //fprintf(stderr, "sub1 started\n");
         close(fds2[0]);
         /* create pipe: pr1 | pr2 */
         if (pipe(fds1) < 0) {
@@ -45,13 +44,11 @@ int main(int argc, char **argv)
             fprintf(stderr, "fork() failed: %s\n", strerror(errno));
             exit(FORK_ERR);    
         } else if (pid_sub2 == 0) {
-            //fprintf(stderr, "sub2 started\n");
             /* pr1 */
             if ((pid1 = fork()) < 0) {
                 fprintf(stderr, "fork() failed: %s\n", strerror(errno));
                 exit(FORK_ERR);        
             } else if (pid1 == 0) {
-                //fprintf(stderr, "pr1 started\n");
                 dup2(fds1[1], 1);
                 close(fds1[0]);
                 close(fds1[1]);
@@ -61,13 +58,11 @@ int main(int argc, char **argv)
                 _exit(EXEC_ERR);       
             }        
             close(fds1[1]);
-            
             /* pr2 */
             if ((pid2 = fork()) < 0) {
                 fprintf(stderr, "fork() failed: %s\n", strerror(errno));
                 exit(FORK_ERR);   
             } else if (pid2 == 0) {
-                //fprintf(stderr, "pr2 started\n");
                 dup2(fds1[0], 0);
                 dup2(fds2[1], 1);
                 close(fds1[0]);
@@ -78,19 +73,17 @@ int main(int argc, char **argv)
             }
             close(fds1[0]);
             close(fds2[1]);
-            while (wait(NULL) > 0) {};
-            //fprintf(stderr, "pr1 pr2 exited\n");
+            wait(NULL);
+            wait(NULL);
         }
         close(fds1[0]);
         close(fds1[1]);
-        while (wait(NULL) > 0) {};
-        //fprintf(stderr, "sub2 exited\n");
+        wait(NULL);
         /* pr3 */
         if ((pid3 = fork()) < 0) {
             fprintf(stderr, "fork() failed: %s\n", strerror(errno));
             exit(FORK_ERR);   
         } else if (pid3 == 0) {
-            //fprintf(stderr, "pr3 started\n");
             dup2(fds2[1], 1);
             close(fds2[1]);
             execlp(argv[3], argv[3], NULL);
@@ -98,20 +91,17 @@ int main(int argc, char **argv)
             _exit(EXEC_ERR);  
         }
         close(fds2[1]);
-        while (wait(NULL) > 0) {};
-        //fprintf(stderr, "pr3 exited\n");
+        wait(NULL);
     }
 
     close(fds2[1]);
-    while (wait(NULL) > 0) {};
-    //fprintf(stderr, "sub1 exited\n");
+    wait(NULL);
 
     /* pr4 */
     if ((pid4 = fork()) < 0) {
         fprintf(stderr, "fork() failed: %s\n", strerror(errno));
         exit(FORK_ERR);   
     } else if (pid4 == 0) {
-        //fprintf(stderr, "pr4 started\n");
         dup2(fds2[0], 0);
         close(fds2[0]);
         execlp(argv[4], argv[4], NULL);
@@ -120,8 +110,7 @@ int main(int argc, char **argv)
     }
 
     close(fds2[0]);
-    //wait(NULL); /* wait pr4 */
-    //fprintf(stderr, "pr4 exited\n");
+    wait(NULL); /* wait pr4 */
 
     return 0;
 }
