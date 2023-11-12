@@ -10,87 +10,89 @@
 
 enum { INP_ERR, FORK_ERR, EXEC_ERR, PIPE_ERR };
 
-/* ((pr1 | pr2 ); pr3) | pr4 */
+/* ((pr1 | pr2); pr3) | pr4 */
 
 int main(int argc, char **argv)
 {
-    pid_t pid;
-    int fds1[2] = {0}, fds2[2] = {0}, fd0, fd1;  
+    pid_t pid1, pid2, pid3, pid4;
+    int fds[2] = {0}; 
 
     if (argc != 5) {
         fprintf(stderr, "usage: %s <pr1> <pr2> <pr3> <pr4>\n", argv[0]);
         exit(INP_ERR);
     }
 
-    fd0 = dup(0);
-    fd1 = dup(1);
-    if (pipe(fds1) < 0) {
+    if (pipe(fds) < 0) {
         fprintf(stderr, "pipe() failed: %s\n", strerror(errno));
         exit(PIPE_ERR);
     }
-    dup2(fds1[1], 1);
 
     /* pr1 */
-    if ((pid = fork()) < 0) {
+    if ((pid1 = fork()) < 0) {
         fprintf(stderr, "fork() failed: %s\n", strerror(errno));
         exit(FORK_ERR);        
-    } else if (pid == 0) {
+    } else if (pid1 == 0) {
+        dup2(fds[1], 1);
+        close(fds[0]);
+        close(fds[1]);
         execlp(argv[1], argv[1], NULL);
         fprintf(stderr, "exec() failed: %s\n", strerror(errno));
         _exit(EXEC_ERR);       
     }
 
-    close(fds2[1]);
-    dup2(fds2[0],0);
-
-    if (pipe(fds1) < 0) {
-        fprintf(stderr, "pipe() failed: %s\n", strerror(errno));
-        exit(PIPE_ERR);
-    }
-    dup2(fds1[1],1);
+    close(fds[1]);
 
     /* pr2 */
-    if ((pid = fork()) < 0) {
+    if ((pid2 = fork()) < 0) {
         fprintf(stderr, "fork() failed: %s\n", strerror(errno));
         exit(FORK_ERR);   
-    } else if (pid == 0) {
+    } else if (pid2 == 0) {
+        dup2(fds[0], 0);
+        close(fds[0]);
         execlp(argv[2], argv[2], NULL);
         fprintf(stderr, "exec() failed: %s\n", strerror(errno));
         _exit(EXEC_ERR);  
     }
 
-    close(fds2[0]);
-    dup2(fd0,0);
+    close(fds[0]);
 
     while (wait(NULL) > 0) {}
 
+    if (pipe(fds) < 0) {
+        fprintf(stderr, "pipe() failed: %s\n", strerror(errno));
+        exit(PIPE_ERR);
+    }
+
     /* pr3 */
-    if ((pid = fork()) < 0) {
+    if ((pid3 = fork()) < 0) {
         fprintf(stderr, "fork() failed: %s\n", strerror(errno));
         exit(FORK_ERR);   
-    } else if (pid == 0) {
+    } else if (pid3 == 0) {
+        dup2(fds[1], 1);
+        close(fds[0]);
+        close(fds[1]);
         execlp(argv[3], argv[3], NULL);
         fprintf(stderr, "exec() failed: %s\n", strerror(errno));
         _exit(EXEC_ERR);  
     }
 
-    close(fds1[1]);
-    dup2(fd1,1);
-    dup2(fds1[0],0);
+    close(fds[1]);
 
     /* pr4 */
-    if ((pid = fork()) < 0) {
+    if ((pid4 = fork()) < 0) {
         fprintf(stderr, "fork() failed: %s\n", strerror(errno));
         exit(FORK_ERR);   
-    } else if (pid == 0) {
+    } else if (pid4 == 0) {
+        dup2(fds[0], 0);
+        close(fds[0]);
         execlp(argv[4], argv[4], NULL);
         fprintf(stderr, "exec() failed: %s\n", strerror(errno));
         _exit(EXEC_ERR);  
     }
 
-    close(fds1[0]);
+    close(fds[0]);
 
-    wait(NULL);
+    while (wait(NULL) > 0) {}
 
     return 0;
 }
