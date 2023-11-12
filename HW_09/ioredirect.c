@@ -17,8 +17,8 @@ int main(int argc, char **argv)
     pid_t pid;
     int status, fd0, fd1;
 
-    if (argc != 2) {
-        fprintf(stderr, "usage: %s <pr1>\n", argv[0]);
+    if (argc != 4) {
+        fprintf(stderr, "usage: %s <pr1> <input_file> <output_file>\n", argv[0]);
         exit(INP_ERR);
     }
 
@@ -27,7 +27,7 @@ int main(int argc, char **argv)
         exit(FORK_ERR);
     } else if (pid == 0) {
         /* set up new program: input redirection */
-        if ((fd0 = open("f.dat", O_RDONLY | O_CLOEXEC, 0)) < 0) {
+        if ((fd0 = open(argv[2], O_RDONLY | O_CLOEXEC, 0)) < 0) {
             fprintf(stderr, "open() failed: %s\n", strerror(errno));
             //fflush(stderr); // if stderr is not buffered by default
             _exit(OPEN_ERR); // _exit() instead of exit(): minimal impact on the parent process
@@ -36,7 +36,7 @@ int main(int argc, char **argv)
         //close(fd0);
 
         /* output redirection */
-        if ((fd1 = open("f.res", O_WRONLY | O_CREAT | O_TRUNC | O_CLOEXEC, 0600)) < 0) {
+        if ((fd1 = open(argv[3], O_WRONLY | O_CREAT | O_TRUNC | O_CLOEXEC, 0600)) < 0) {
             fprintf(stderr, "open() failed: %s\n", strerror(errno));
             //fflush(stderr);
             _exit(OPEN_ERR);            
