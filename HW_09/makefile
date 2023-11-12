@@ -3,7 +3,7 @@ CFLAGS = -Wall -Werror
 
 all: ioredirect subshell cmd conveyor str_search
 
-redirect: ioredirect.c
+ioredirect: ioredirect.c
 	$(CC) $(CFLAGS) ioredirect.c -o ioredirect
 
 subshell: subshell.c
