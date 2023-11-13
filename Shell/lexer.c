@@ -9,6 +9,7 @@
 
 #define MEMORY_ERR 1
 #define QUOTES_ERR 2
+#define QUOTES_LIST_ERR (list)-1
 
 typedef enum { 
     START, 
@@ -25,18 +26,20 @@ typedef enum {
     STOP
 } vertex;
 
-static void error(list *lst, int *size_lst, int error_code)
+static list error(list *lst, int *size_lst, int error_code)
 {
     switch (error_code) {
         case QUOTES_ERR:
             clear_list(lst, size_lst);
             fprintf(stderr, "Quotes are imbalanced\n");
-            return;
+            break;
 
         case MEMORY_ERR:
             fprintf(stderr, "Memory error\n");
             exit(MEMORY_ERR);
     }
+
+    return (list)-1;
 }
 
 static void null_list(list *lst, int *size_lst, int *cur_lst)
@@ -72,19 +75,21 @@ void print_list(list lst, int size_lst, int output_fd)
     }
 }
 
-void clear_list(list *lst, int *size_lst)
+list clear_list(list *lst, int *size_lst)
 {
     int i;
     *size_lst = 0;
 
     if (*lst == NULL) 
-        return;
+        return NULL;
 
     for (i = 0; (*lst)[i] != NULL; i++)
         free((*lst)[i]);
     free(*lst);
 
     (*lst) = NULL;
+
+    return *lst;
 }
 
 static int get_sym(int input_fd) 
@@ -176,7 +181,7 @@ static void term_list(list *lst, int *size_lst, int *cur_lst)
         error(lst, size_lst, MEMORY_ERR);
 }
 
-void build_list(list *lst, int *size_lst, int input_fd, int output_fd)
+list build_list(list *lst, int *size_lst, int input_fd, int output_fd)
 {
     int cur_lst = 0, cur_lex = 0, size_lex = 0, quote_cnt = 0, c;
     lexeme lex = NULL;
@@ -188,13 +193,24 @@ void build_list(list *lst, int *size_lst, int input_fd, int output_fd)
     while (1) {
         switch(V) {
             case START:
-                if (c == ' ' || c == '\t' || c == '\n') {
+                if (c == ' ' || c == '\t') {
                     c = get_sym(input_fd);
                 } else if (c == EOF) {
                     term_list(lst, size_lst, &cur_lst);
                     if (quote_cnt % 2 == 1)
-                        error(lst, size_lst, QUOTES_ERR);
+                        *lst = error(lst, size_lst, QUOTES_ERR);
                     V = STOP;
+                } else if (c == '\n') {
+                    /* terminal */
+                    if (input_fd == 0) {
+                        term_list(lst, size_lst, &cur_lst);
+                        if (quote_cnt % 2 == 1)
+                            *lst = error(lst, size_lst, QUOTES_ERR);
+                        V = STOP;
+                    /* file */
+                    } else {
+                        c = get_sym(input_fd);
+                    }
                 } else if (c == '#') {
                     c = get_sym(input_fd);
                     V = HASH_START;
@@ -328,7 +344,7 @@ void build_list(list *lst, int *size_lst, int input_fd, int output_fd)
                 break;
 
             case STOP:
-                return;
+                return *lst;
         }
     }
 }
