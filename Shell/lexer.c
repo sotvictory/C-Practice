@@ -188,15 +188,13 @@ void build_list(list *lst, int *size_lst, int input_fd, int output_fd)
     while (1) {
         switch(V) {
             case START:
-                if (c == ' ' || c == '\t') {
+                if (c == ' ' || c == '\t' || c == '\n') {
                     c = get_sym(input_fd);
                 } else if (c == EOF) {
                     term_list(lst, size_lst, &cur_lst);
                     if (quote_cnt % 2 == 1)
                         error(lst, size_lst, QUOTES_ERR);
                     V = STOP;
-                } else if (c == '\n') {
-                    c = get_sym(input_fd);
                 } else if (c == '#') {
                     c = get_sym(input_fd);
                     V = HASH_START;

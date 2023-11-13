@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <string.h>
 #include "lexer.h"
 #include "parser.h"
 
@@ -13,14 +14,19 @@ int main(int argc, char **argv)
     list lst = NULL;
     tree t = NULL;
 
-    if (argc == 3) {
-        if ((input_fd = open(argv[1], O_RDONLY)) < 0) {
-            perror("open");
-            exit(OPEN_ERR);
-        }
-        if ((output_fd = open(argv[2], O_WRONLY)) < 0) {
-            perror("open");
-            exit(OPEN_ERR);
+    if (argc > 1) {
+        for (i = 1; i < argc; i++) {
+            if (strcmp(argv[i], ">") == 0) {
+                if ((output_fd = open(argv[2], O_WRONLY | O_CREAT | O_TRUNC, 0600)) < 0) {
+                    perror("open");
+                    exit(OPEN_ERR);
+                }                
+            } else if (strcmp(argv[i], "<") == 0) {
+                if ((input_fd = open(argv[1], O_RDONLY, 0)) < 0) {
+                    perror("open");
+                    exit(OPEN_ERR);
+                }                
+            }
         }
     }
 
