@@ -27,7 +27,10 @@ int main(int argc, char **argv)
     stdin_fd = dup(0);
     stdout_fd = dup(1);
     
-    pipe(fds1);
+    if (pipe(fds1) < 0) {
+        fprintf(stderr, "pipe() failed: %s\n", strerror(errno));
+        exit(PIPE_ERR);        
+    }
     
     if ((pid1 = fork()) < 0) {
         fprintf(stderr, "fork() failed: %s\n", strerror(errno));
@@ -44,7 +47,11 @@ int main(int argc, char **argv)
     }
     
     close(fds1[1]);
-    pipe(fds2);
+
+    if (pipe(fds2) < 0) {
+        fprintf(stderr, "pipe() failed: %s\n", strerror(errno));
+        exit(PIPE_ERR);        
+    }
     
     if ((pid2 =fork()) < 0) {
         fprintf(stderr, "fork() failed: %s\n", strerror(errno));

@@ -17,8 +17,8 @@ int main(int argc, char **argv)
     pid_t pid1, pid2, pid3;
     int fds[2], fd;
 
-    if (argc != 6) {
-        fprintf(stderr, "usage: %s <pr1> <arg1> <arg2> <pr2> <pr3>\n", argv[0]);
+    if (argc != 7) {
+        fprintf(stderr, "usage: %s <pr1> <arg1> <arg2> <pr2> <pr3> <output_file>\n", argv[0]);
         exit(INP_ERR);
     }    
 
@@ -63,7 +63,7 @@ int main(int argc, char **argv)
         fprintf(stderr, "fork() failed: %s\n", strerror(errno));
         exit(FORK_ERR);         
     } else if (pid3 == 0){
-        if ((fd = open("f1.dat", O_WRONLY | O_CREAT | O_APPEND, 0600)) < 0) {
+        if ((fd = open(argv[6], O_WRONLY | O_CREAT | O_APPEND, 0600)) < 0) {
             fprintf(stderr, "open() failed: %s\n", strerror(errno));
             _exit(OPEN_ERR);
         }
