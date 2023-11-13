@@ -12,6 +12,8 @@ enum { INP_ERR, FORK_ERR, EXEC_ERR, PIPE_ERR };
 
 /* ((pr1 | pr2); pr3) | pr4 */
 
+/* BUT THERE IS DEADLOCK */
+
 int main(int argc, char **argv)
 {
     pid_t pid_sub1, pid_sub2, pid1, pid2, pid3, pid4;
@@ -21,8 +23,6 @@ int main(int argc, char **argv)
         fprintf(stderr, "usage: %s <pr1> <pr2> <pr3> <pr4>\n", argv[0]);
         exit(INP_ERR);
     }
-
-    /* без обработки ошибок */
 
     /* create pipe: subshell2 | pr4 */
     pipe(fds2);
