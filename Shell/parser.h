@@ -3,6 +3,7 @@
 
 #include "lexer.h"
 
+#define TREE_ERR (tree)-1
 #define PRINT_SHIFT 5
 
 typedef enum next_type {

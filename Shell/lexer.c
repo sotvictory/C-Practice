@@ -9,7 +9,6 @@
 
 #define MEMORY_ERR 1
 #define QUOTES_ERR 2
-#define QUOTES_LIST_ERR (list)-1
 
 typedef enum { 
     START, 
@@ -28,18 +27,19 @@ typedef enum {
 
 static list error(list *lst, int *size_lst, int error_code)
 {
+    clear_list(lst, size_lst);
+
     switch (error_code) {
         case QUOTES_ERR:
-            clear_list(lst, size_lst);
             fprintf(stderr, "Quotes are imbalanced\n");
             break;
 
         case MEMORY_ERR:
             fprintf(stderr, "Memory error\n");
-            exit(MEMORY_ERR);
+            break;
     }
 
-    return (list)-1;
+    return LIST_ERR;
 }
 
 static void null_list(list *lst, int *size_lst, int *cur_lst)

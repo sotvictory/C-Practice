@@ -1,6 +1,8 @@
 #ifndef LEXER_H
 #define LEXER_H
 
+#define LIST_ERR (list)-1
+
 typedef char **list;
 typedef char *lexeme;
 

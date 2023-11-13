@@ -4,7 +4,6 @@
 #include "lexer.h"
 #include "parser.h"
 
-#define TREE_ERR (tree)-1
 #define BUILD_TREE_ERR 1
 #define MEM_ERR 2
 #define SEP_ERR 3
@@ -18,55 +17,56 @@
 #define TWO_OUTFILE_ERR 11
 #define EMPTY_CMD_ERR 12
 
+int cnt_argv = 0;
+
 static tree get_cmd_lst(list lst, int size_lst, int *brackets_cnt, int *plex);
 static tree get_pipe(list lst, int size_lst, int *brackets_cnt, int *plex);
 static tree get_cmd(list lst, int size_lst, int *brackets_cnt, int *plex);
 
-static void error(tree t, int error_code)
+static tree error(tree t, int error_code)
 {
-    /* еще здесь надо почистить дерево */
     t = clear_tree(t);
 
     switch (error_code) {
         case SEP_ERR:
             fprintf(stderr, "Invalid command separator\n");
-            exit(SEP_ERR);
+            break;
 
         case BRACKETS_ERR:
             fprintf(stderr, "Brackets are imbalanced\n");
-            exit(BRACKETS_ERR);
+            break;
 
         case SUBSHELL_ERR:
             fprintf(stderr, "Invalid subshell call\n");
-            exit(SUBSHELL_ERR);
+            break;
 
         case L_BRACKET_ERR:
             fprintf(stderr, "Invalid command: unexpected \"(\"\n");
-            exit(L_BRACKET_ERR);
+            break;
 
         case R_BRACKET_ERR:
             fprintf(stderr, "Invalid command: unexpected \")\"\n");
-            exit(R_BRACKET_ERR);
+            break;
 
         case TWO_INFILE_ERR:
             fprintf(stderr, "Invalid input redirection: more than 1 input file specified\n");
-            exit(TWO_INFILE_ERR);
+            break;
 
         case NO_INPFILE_ERR:
             fprintf(stderr, "Invalid input redirection: no input files are specified\n");
-            exit(NO_INPFILE_ERR);
+            break;
 
         case TWO_OUTFILE_ERR:
             fprintf(stderr, "Invalid output redirection: more than 1 output file specified\\n");
-            exit(TWO_OUTFILE_ERR);
+            break;
 
         case NO_OUTFILE_ERR:
             fprintf(stderr, "Invalid output redirection: no output files are specified\n");
-            exit(NO_OUTFILE_ERR);
+            break;
 
         case EMPTY_CMD_ERR:
             fprintf(stderr, "Invalid empty command\n");
-            exit(EMPTY_CMD_ERR);
+            break;
 
         case MEM_ERR:
             fprintf(stderr, "Memory error\n");
@@ -74,17 +74,19 @@ static void error(tree t, int error_code)
 
         default:
             fprintf(stderr, "Invalid command\n");
-            exit(BUILD_TREE_ERR);
+            break;
     }
+
+    return TREE_ERR;
 }
 
-void make_shift(int shift)
+static void make_shift(int shift)
 {
     while (shift--)
         fprintf(stderr, " ");
 }
 
-void print_argv(list argv, int shift)
+static void print_argv(list argv, int shift)
 {
     int i;
 
@@ -222,28 +224,29 @@ static tree get_cmd_lst(list lst, int size_lst, int *brackets_cnt, int *plex)
             last_pipe->type = OR;
         } else if (strcmp(sep, ")") == 0) {
 			if ((*brackets_cnt) - 1 < 0)
-				error(pipe, BRACKETS_ERR);
+				return error(pipe, BRACKETS_ERR);
 			(*plex)--;
 			break;
         } else {
-            error(pipe, SEP_ERR);
+            return error(pipe, SEP_ERR);
         }
 
         if ((last_pipe->next = get_pipe(lst, size_lst, brackets_cnt, plex)) == TREE_ERR) {
 			pipe = clear_tree(pipe);
 			return TREE_ERR;
         } else if (strcmp(sep, "&&") == 0 || strcmp(sep, "||") == 0) {
-            error(pipe, EMPTY_CMD_ERR);
+            return error(pipe, EMPTY_CMD_ERR);
 		} else if (last_pipe->next != NULL) {
             last_pipe = last_pipe->next;
         }
     }
 
 	if (pipe == NULL)
-		error(pipe, EMPTY_CMD_ERR);
+		return error(pipe, EMPTY_CMD_ERR);
 
     //fprintf(stderr, "get_cmd_lst:\n");
     //print_tree(pipe, 5);
+
 	return pipe;
 }
 
@@ -265,11 +268,11 @@ static tree get_pipe(list lst, int size_lst, int *brackets_cnt, int *plex)
             break;
         } else if (strcmp(sep, ")") == 0) {
 			if ((*brackets_cnt) - 1 < 0)
-				error(cmd, BRACKETS_ERR);
+				return error(cmd, BRACKETS_ERR);
 			(*plex)--;
 			break;            
         } else if (strcmp(sep, "|") != 0) {
-            error(cmd, SEP_ERR);
+            return error(cmd, SEP_ERR);
         } else {
             if ((last_cmd->pipe = get_cmd(lst, size_lst, brackets_cnt, plex)) == TREE_ERR) {
                 cmd = clear_tree(cmd);
@@ -277,12 +280,13 @@ static tree get_pipe(list lst, int size_lst, int *brackets_cnt, int *plex)
             }
             last_cmd = last_cmd->pipe;
             if (last_cmd == NULL)
-                error(cmd, EMPTY_CMD_ERR);
+                return error(cmd, EMPTY_CMD_ERR);
         }
     }
 
     //fprintf(stderr, "get_pipe:\n");
     //print_tree(cmd, 5);
+
     return cmd;
 }
 
@@ -304,16 +308,13 @@ static tree get_cmd(list lst, int size_lst, int *brackets_cnt, int *plex)
 {
     tree cmd;
     lexeme lex;
-    int is_output = 0, is_input = 0, is_sub = 0, cnt_argv = 0;
+    int is_output = 0, is_input = 0, is_sub = 0; // cnt_argv = 0;
 
     if ((lex = get_lex(lst, size_lst, plex)) == NULL)
         return NULL;
 
     if ((cmd = malloc(sizeof(cmd_inf))) == NULL)
-        error(cmd, MEM_ERR);
-    if ((cmd->argv = malloc(sizeof(lexeme))) == NULL) {
-        error(cmd, MEM_ERR);
-    }
+        return error(cmd, MEM_ERR);
 
     null_cmd(&cmd);
 
@@ -324,22 +325,22 @@ static tree get_cmd(list lst, int size_lst, int *brackets_cnt, int *plex)
         } else if (strcmp(lex, "(") == 0) {
             /* subshell arguments are not allowed */
             if (cnt_argv != 0)
-                error(cmd, SUBSHELL_ERR);
+                return error(cmd, SUBSHELL_ERR);
             (*brackets_cnt)++;
             /* parse subshell */
             cmd->psubcmd = get_cmd_lst(lst, size_lst, brackets_cnt, plex);
             if (cmd->psubcmd == NULL)
-                error(cmd, EMPTY_CMD_ERR);
+                return error(cmd, EMPTY_CMD_ERR);
             else if (cmd->psubcmd == TREE_ERR)
                 return TREE_ERR;
             /* check correct subshell input */
             if (get_lex(lst, size_lst, plex) == NULL)
-                error(cmd, BRACKETS_ERR);
+                return error(cmd, BRACKETS_ERR);
             (*brackets_cnt)--;
             is_sub = 1;
         } else if (strcmp(lex, ")") == 0) {
             if ((*brackets_cnt) - 1 < 0)
-                error(cmd, BRACKETS_ERR);
+                return error(cmd, BRACKETS_ERR);
             (*plex)--;
             break;
         /* input redirection */
@@ -347,17 +348,17 @@ static tree get_cmd(list lst, int size_lst, int *brackets_cnt, int *plex)
             if (is_input == 0) {
                 cmd->infile = get_lex(lst, size_lst, plex);
                 if (cmd->infile == NULL)
-                    error(cmd, NO_INPFILE_ERR);
+                    return error(cmd, NO_INPFILE_ERR);
                 is_input = 1;
             } else {
-                error(cmd, TWO_INFILE_ERR);
+                return error(cmd, TWO_INFILE_ERR);
             }
         /* output redirection*/
         } else if (strcmp(lex, ">") == 0 || strcmp(lex, ">>") == 0) {
             if (is_output == 0) {
                 cmd->outfile = get_lex(lst, size_lst, plex);
                 if (cmd->outfile == NULL)
-                    error(cmd, NO_OUTFILE_ERR);
+                    return error(cmd, NO_OUTFILE_ERR);
                 is_output = 1;
                 if (strcmp(lex, ">>") == 0)
                     cmd->append = 1;
@@ -370,10 +371,10 @@ static tree get_cmd(list lst, int size_lst, int *brackets_cnt, int *plex)
         /* parse argv */
         } else {
             if (is_sub)
-                error(cmd, SUBSHELL_ERR);
+                return error(cmd, SUBSHELL_ERR);
             cnt_argv++;
             if ((cmd->argv = realloc(cmd->argv, sizeof(lexeme)*((cnt_argv + 1)))) == NULL)
-                error(cmd, MEM_ERR);
+                return error(cmd, MEM_ERR);
             cmd->argv[cnt_argv - 1] = lex;
             cmd->argv[cnt_argv] = NULL;
         }
@@ -382,6 +383,7 @@ static tree get_cmd(list lst, int size_lst, int *brackets_cnt, int *plex)
 
     //fprintf(stderr, "get_cmd:\n");
     //print_tree(cmd, 5);
+    
     return cmd;
 }
 
@@ -390,6 +392,9 @@ tree build_tree(list lst, int size_lst)
     int brackets_cnt = 0, plex = 0;
 
     tree t = get_cmd_lst(lst, size_lst, &brackets_cnt, &plex);
+
+    //fprintf(stderr, "build_tree:\n");
+    //print_tree(t, 5);
 
     return t;
 }

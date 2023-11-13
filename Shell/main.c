@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
+#include <errno.h>
 #include "lexer.h"
 #include "parser.h"
 
@@ -20,49 +21,50 @@ void invitation(void)
 
 int main(int argc, char **argv)
 {
-    int i = 0, size_lst = 0, input_fd = 0, output_fd = 1; // + log_fd
+    int i = 0, size_lst = 0, input_fd = 0, output_fd = 1;
     list lst = NULL;
-    //tree t = NULL;
+    tree t = NULL;
 
     if (argc > 1) {
         for (i = 1; i < argc; i++) {
             if (strcmp(argv[i], "-o") == 0) {
                 if ((output_fd = open(argv[i + 1], O_WRONLY | O_CREAT | O_TRUNC, 0600)) < 0) {
-                    perror("open");
+                    fprintf(stderr, "open() failed: %s\n", strerror(errno));
                     exit(OPEN_ERR);
                 }  
             } else if (strcmp(argv[i], "-i") == 0) {
                 if ((input_fd = open(argv[i + 1], O_RDONLY, 0)) < 0) {
-                    perror("open");
+                    fprintf(stderr, "open() failed: %s\n", strerror(errno));
                     exit(OPEN_ERR);
                 }
             }
         }
     }
 
-    /* list */
     while (1) {
         if (input_fd == 0)
             invitation();
+
+        /* list */
         build_list(&lst, &size_lst, input_fd, output_fd);
         if (lst == NULL)
             break;
-        if (lst != (list)-1) {
+        if (lst != LIST_ERR) {
             print_list(lst, size_lst, output_fd);
-            clear_list(&lst, &size_lst);
         }
+
+        /* tree */
+        t = build_tree(lst, size_lst);
+        if (t != TREE_ERR) {
+            print_tree(t, PRINT_SHIFT);
+        }
+
+        clear_list(&lst, &size_lst);
+        clear_tree(t);
     }
 
     close(input_fd);
     close(output_fd);
-
-    #if 0
-    /* tree */
-    t = build_tree(lst, size_lst);
-    clear_list(&lst, &size_lst);
-    print_tree(t, PRINT_SHIFT);
-    clear_tree(t);
-    #endif
 
     return 0;
 }
