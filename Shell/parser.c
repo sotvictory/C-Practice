@@ -168,8 +168,6 @@ static lexeme get_lex(list lst, int size_lst, int *plex)
     }
 }
 
-/* TODO: must ignore subshell, if "&" was found not in the subshell
- * ex: date; (ls -l | cat -n) >f & pwd */
 static void set_background(tree cmd, int is_same_cmd)
 {
     if (cmd == NULL)
@@ -189,7 +187,7 @@ static void set_background(tree cmd, int is_same_cmd)
     cmd->background = 1;
 
     /* Set the background flag for sub-commands */
-    set_background(cmd->psubcmd, 0);
+    //set_background(cmd->psubcmd, 0);
     set_background(cmd->pipe, 0);
     if (cmd->type != NEXT)
         set_background(cmd->next, 0);

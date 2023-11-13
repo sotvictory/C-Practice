@@ -45,22 +45,23 @@ int main(int argc, char **argv)
         if (input_fd == 0)
             invitation();
 
-        /* list */
         build_list(&lst, &size_lst, input_fd, output_fd);
         if (lst == NULL)
             break;
-        //if (lst != LIST_ERR) {
-            //print_list(lst, size_lst, output_fd);
-        //}
 
-        /* tree */
-        t = build_tree(lst, size_lst);
+        if (lst != LIST_ERR) {
+            //print_list(lst, size_lst, output_fd);
+            t = build_tree(lst, size_lst);
+        }
+
         if (t != TREE_ERR) {
             print_tree(t, PRINT_SHIFT);
         }
 
-        clear_list(&lst, &size_lst);
-        clear_tree(t);
+        if (lst != LIST_ERR)
+            clear_list(&lst, &size_lst);
+        if (t != TREE_ERR)
+            clear_tree(t);
     }
 
     close(input_fd);
