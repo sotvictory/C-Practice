@@ -30,12 +30,15 @@ int main(int argc, char **argv)
     /* subshell 1: ((pr1 | pr2); pr3) */
     if ((pid_sub1 = fork()) == 0) {
         close(fds2[0]);
+        fprintf(stderr, "sub1: create process PID = %d, my parent PPID = %d\n", getpid(), getppid());
         /* subshell 2: (pr1 | pr2) */
         if ((pid_sub2 = fork()) == 0) {
+            fprintf(stderr, "sub2: create process PID = %d, my parent PPID = %d\n", getpid(), getppid());
             /* create pipe: pr1 | pr2 */
             pipe(fds1);
             /* pr1 */
             if ((pid1 = fork()) == 0) {   
+                fprintf(stderr, "pr1: create process PID = %d, my parent PPID = %d\n", getpid(), getppid());
                 dup2(fds1[1], 1);
                 close(fds1[0]);
                 close(fds1[1]);
@@ -45,6 +48,7 @@ int main(int argc, char **argv)
             close(fds1[1]);
             /* pr2 */
             if ((pid2 = fork()) == 0) {
+                fprintf(stderr, "pr2: create process PID = %d, my parent PPID = %d\n", getpid(), getppid());
                 dup2(fds1[0], 0);
                 dup2(fds2[1], 1);
                 close(fds1[0]);
@@ -53,34 +57,36 @@ int main(int argc, char **argv)
             }
             close(fds1[0]);
             close(fds2[1]);
-            wait(NULL);
-            wait(NULL);
+            waitpid(pid1, NULL, 0);
+            waitpid(pid2, NULL, 0);
         }
         close(fds1[0]);
         close(fds1[1]);
-        wait(NULL);
+        waitpid(pid_sub2, NULL, 0);
         /* pr3 */
         if ((pid3 = fork()) == 0) { 
+            fprintf(stderr, "pr3: create process PID = %d, my parent PPID = %d\n", getpid(), getppid());
             dup2(fds2[1], 1);
             close(fds2[1]);
             execlp(argv[3], argv[3], NULL);
         }
         close(fds2[1]);
-        wait(NULL);
+        waitpid(pid3, NULL, 0);
     }
 
     close(fds2[1]);
-    wait(NULL);
+    waitpid(pid_sub1, NULL, 0);
 
     /* pr4 */
     if ((pid4 = fork()) == 0) {
+        fprintf(stderr, "pr4: create process PID = %d, my parent PPID = %d\n", getpid(), getppid());
         dup2(fds2[0], 0);
         close(fds2[0]);
         execlp(argv[4], argv[4], NULL);
     }
 
     close(fds2[0]);
-    wait(NULL); /* wait pr4 */
+    waitpid(pid4, NULL, 0);
 
     return 0;
 }
