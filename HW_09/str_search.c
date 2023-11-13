@@ -7,9 +7,9 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <stdbool.h>
+#include <signal.h>
 
-#define MAX_LENGTH 256
+#define MAX_LEN 256
 
 enum { INP_ERR, OPEN_ERR, FORK_ERR};
 
@@ -20,18 +20,16 @@ enum { INP_ERR, OPEN_ERR, FORK_ERR};
 
 int main(int argc, char **argv)
 {
-    char str[MAX_LENGTH];
+    char str[MAX_LEN];
     char *substr = "word";
     pid_t pid;
     int i;
-    //bool found = 0;
 
     if (argc < 2) {
         fprintf(stderr, "usage: %s <file_1> [<file_2>] [<file_3>] ... [<file_n>]\n", argv[0]);
         exit(INP_ERR);
     }
 
-    /* TODO: substring did not find */
     for (i = 1; i < argc; i++) {
         if ((pid = fork()) == 0) {
             FILE *f = fopen(argv[i], "r");
@@ -39,12 +37,11 @@ int main(int argc, char **argv)
                 fprintf(stderr, "fopen() failed: %s\n", strerror(errno));
                 _exit(OPEN_ERR);
             }
-            while (fgets(str, MAX_LENGTH, f) != NULL) {
+            while (fgets(str, MAX_LEN, f) != NULL) {
                 if (strstr(str, substr) != NULL) {
-                    fprintf(stdout, "substring found in file %s\n", argv[i]);
+                    fprintf(stdout, "substring '%s' was found in file %s\n", substr, argv[i]);
                     fflush(stdout);
-                    //found = 1;
-                    break;
+                    kill(0, SIGTERM);
                 }
             }
             fclose(f);
@@ -56,7 +53,7 @@ int main(int argc, char **argv)
     }
 
     for (i = 1; i < argc - 1; i++)
-        wait(NULL);    
+        wait(NULL); 
 
     return 0;
 }
