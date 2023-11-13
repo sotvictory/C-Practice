@@ -9,12 +9,16 @@
 
 int main(int argc, char **argv)
 {
-    int i = 0, size_lst = 0, fd = 0;
+    int i = 0, size_lst = 0, input_fd = 0, output_fd = 1;
     list lst = NULL;
     tree t = NULL;
 
-    if (argc == 2) {
-        if ((fd = open(argv[1], O_RDONLY)) < 0) {
+    if (argc == 3) {
+        if ((input_fd = open(argv[1], O_RDONLY)) < 0) {
+            perror("open");
+            exit(OPEN_ERR);
+        }
+        if ((output_fd = open(argv[2], O_WRONLY)) < 0) {
             perror("open");
             exit(OPEN_ERR);
         }
@@ -22,14 +26,15 @@ int main(int argc, char **argv)
 
     /* list */
     while (1) {
-        build_list(&lst, &size_lst, fd);
+        build_list(&lst, &size_lst, input_fd, output_fd);
         if (lst == NULL)
             break;
-        print_list(lst, size_lst);
+        print_list(lst, size_lst, output_fd);
         clear_list(&lst, &size_lst);
     }
 
-    close(fd);
+    close(input_fd);
+    close(output_fd);
 
     #if 0
     /* tree */
