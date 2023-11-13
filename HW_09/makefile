@@ -9,7 +9,7 @@ ioredirect: ioredirect.c
 subshell: subshell.c
 	$(CC) $(CFLAGS) subshell.c -o subshell
 
-subshell: subshell_deadlock.c
+subshell_deadlock: subshell_deadlock.c
 	$(CC) $(CFLAGS) subshell_deadlock.c -o subshell_deadlock
 
 cmd: cmd.c
