@@ -20,6 +20,8 @@ typedef enum {
     SINGLE_GREATER, 
     QUOTE,
     SLASH,
+    HASH_START,
+    HASH_WORD,
     STOP
 } vertex;
 
@@ -31,12 +33,12 @@ static void error(list *lst, int *size_lst, int fd, int error_code)
     switch (error_code) {
         case QUOTES_ERR:
             fprintf(stderr, "Quotes are imbalanced\n");
-            exit(MEMORY_ERR);
+            return;
 
         case MEMORY_ERR:
             fprintf(stderr, "Memory error\n");
             exit(MEMORY_ERR);
-    }    
+    }
 }
 
 static void null_list(list *lst, int *size_lst, int *cur_lst)
@@ -188,11 +190,16 @@ void build_list(list *lst, int *size_lst, int fd)
             case START:
                 if (c == ' ' || c == '\t') {
                     c = get_sym(fd);
-                } else if (c == EOF || c == '#' || c == '\n') {
+                } else if (c == EOF) {
                     term_list(lst, size_lst, &cur_lst, fd);
                     if (quote_cnt % 2 == 1)
                         error(lst, size_lst, fd, QUOTES_ERR);
                     V = STOP;
+                } else if (c == '\n') {
+                    c = get_sym(fd);
+                } else if (c == '#') {
+                    c = get_sym(fd);
+                    V = HASH_START;
                 } else if (c == '"') {
                     null_lex(&lex, &size_lex, &cur_lex);
                     quote_cnt++;
@@ -219,6 +226,21 @@ void build_list(list *lst, int *size_lst, int fd)
                     c = get_sym(fd);
                 }
                 break;
+            
+            case HASH_START:
+                if (c == '\n' || c == EOF) {
+                    V = START;
+                } else {
+                    c = get_sym(fd);
+                }
+                break;
+
+            case HASH_WORD:
+                if (c == '\n' || c == EOF) {
+                    add_word(lst, size_lst, &cur_lst, &lex, &size_lex, &cur_lex, fd);
+                    V = START;
+                }
+                break;
 
             case WORD:
                 if (c == '"') {
@@ -230,7 +252,8 @@ void build_list(list *lst, int *size_lst, int fd)
                     V = SLASH;
                     break;
                 } else if (c == '#') {
-                    V = STOP;
+                    c = get_sym(fd);
+                    V = HASH_WORD;
                     break;
                 } else if (sym_set(c)) {
                     add_sym(lst, size_lst, &lex, &size_lex, &cur_lex, c, fd);
