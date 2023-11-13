@@ -17,8 +17,6 @@
 #define TWO_OUTFILE_ERR 11
 #define EMPTY_CMD_ERR 12
 
-int cnt_argv = 0;
-
 static tree get_cmd_lst(list lst, int size_lst, int *brackets_cnt, int *plex);
 static tree get_pipe(list lst, int size_lst, int *brackets_cnt, int *plex);
 static tree get_cmd(list lst, int size_lst, int *brackets_cnt, int *plex);
@@ -308,7 +306,7 @@ static tree get_cmd(list lst, int size_lst, int *brackets_cnt, int *plex)
 {
     tree cmd;
     lexeme lex;
-    int is_output = 0, is_input = 0, is_sub = 0; // cnt_argv = 0;
+    int is_output = 0, is_input = 0, is_sub = 0, cnt_argv = 0;
 
     if ((lex = get_lex(lst, size_lst, plex)) == NULL)
         return NULL;
@@ -383,7 +381,7 @@ static tree get_cmd(list lst, int size_lst, int *brackets_cnt, int *plex)
 
     //fprintf(stderr, "get_cmd:\n");
     //print_tree(cmd, 5);
-    
+
     return cmd;
 }
 

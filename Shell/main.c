@@ -49,9 +49,9 @@ int main(int argc, char **argv)
         build_list(&lst, &size_lst, input_fd, output_fd);
         if (lst == NULL)
             break;
-        if (lst != LIST_ERR) {
-            print_list(lst, size_lst, output_fd);
-        }
+        //if (lst != LIST_ERR) {
+            //print_list(lst, size_lst, output_fd);
+        //}
 
         /* tree */
         t = build_tree(lst, size_lst);
