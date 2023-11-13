@@ -5,16 +5,6 @@
 - [ ] Parser (Task 5_2 — 5_all) — in progress
 - [ ] Interpreter (Task 5_2 — 5_all)
 
-To test `Lexer` module:
-```shell
-gcc -Wall -Werror lexer.h lexer.c test_lexer.c -o lexer
-./lexer
-```
-
-## Lexer L-Graph
-soon...
-
-## Parser BNF
 ```
 <shell_cmd> ::= <cmd_list>
 <cmd_list> ::= <pipe> {["&" | "&&" | "||" | ";"] <pipe>} ["&" | ";"]
