@@ -59,17 +59,14 @@ int main(int argc, char **argv)
         if (lst != LIST_ERR) {
             //print_list(lst, size_lst, output_fd);
             t = build_tree(lst, size_lst);
-        }
-
-        if (t != TREE_ERR) {
-            //print_tree(t, PRINT_SHIFT);
-            execute_cmd(t);
-        }
-
-        if (lst != LIST_ERR)
+            if (t != TREE_ERR) {
+                //print_tree(t, PRINT_SHIFT);
+                execute_cmd(t);
+            }
             clear_list(&lst, &size_lst);
-        if (t != TREE_ERR)
-            clear_tree(t);
+            if (t != TREE_ERR)
+                clear_tree(t);
+        }
     }
 
     close(input_fd);

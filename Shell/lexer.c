@@ -229,6 +229,7 @@ list build_list(list *lst, int *size_lst, int input_fd, int output_fd)
                     c = get_sym(input_fd);
                 } else if (c == EOF) {
                     term_list(lst, size_lst, &cur_lst);
+                    set_enviroment(lst);
                     if (quote_cnt % 2 == 1)
                         *lst = error(lst, size_lst, QUOTES_ERR);
                     V = STOP;
@@ -236,9 +237,9 @@ list build_list(list *lst, int *size_lst, int input_fd, int output_fd)
                     /* terminal */
                     if (input_fd == 0) {
                         term_list(lst, size_lst, &cur_lst);
+                        set_enviroment(lst);
                         if (quote_cnt % 2 == 1)
                             *lst = error(lst, size_lst, QUOTES_ERR);
-                        set_enviroment(lst);
                         V = STOP;
                     /* file */
                     } else {

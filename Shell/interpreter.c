@@ -7,11 +7,6 @@
 #include "parser.h"
 #include "interpreter.h"
 
-void kitty(void)
-{
-    printf(" /\\_/\\ \n( o.o )\n > ^ <\n");
-}
-
 void cd(tree t)
 {
 	if (t->argv[1] == NULL)
@@ -26,9 +21,6 @@ void execute_cmd(tree t)
 {
     if (strcmp((t->argv)[0], "cd") == 0) {
         cd(t);
-        return;
-    } else if (strcmp((t->argv)[0], "kitty") == 0) {
-        kitty();
         return;
     }
 
