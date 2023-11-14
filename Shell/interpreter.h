@@ -3,6 +3,6 @@
 
 #include "parser.h"
 
-void execute_cmd(tree t);
+int execute_cmd(tree t);
 
 #endif /* INTERPRETER_H */

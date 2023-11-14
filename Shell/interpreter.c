@@ -17,11 +17,11 @@ void cd(tree t)
     return;
 }
 
-void execute_cmd(tree t)
+int execute_cmd(tree t)
 {
     if (strcmp((t->argv)[0], "cd") == 0) {
         cd(t);
-        return;
+        return 0;
     }
 
     pid_t pid = fork();
@@ -29,12 +29,12 @@ void execute_cmd(tree t)
     if (pid == 0) {
         execvp((t->argv)[0], t->argv);
         perror("execvp");
-        exit(1);
+        return -1;
     } else if (pid < 0) {
         perror("fork");
     } else {
         waitpid(pid, NULL, 0);
     }
 
-    return;
+    return 0;
 }
