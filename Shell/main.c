@@ -49,7 +49,7 @@ int main(int argc, char **argv)
     }
 
     while (1) {
-        if (output_fd == 1)
+        if (input_fd == 0)
             invitation();
 
         build_list(&lst, &size_lst, input_fd, output_fd);
