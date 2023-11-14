@@ -19,7 +19,7 @@ void cd(tree t)
 
 int execute_cmd(tree t)
 {
-    if (strcmp((t->argv)[0], "cd") == 0) {
+    if (strcmp(t->argv[0], "cd") == 0) {
         cd(t);
         return 0;
     }
@@ -27,7 +27,7 @@ int execute_cmd(tree t)
     pid_t pid = fork();
 
     if (pid == 0) {
-        execvp((t->argv)[0], t->argv);
+        execvp(t->argv[0], t->argv);
         perror("execvp");
         return -1;
     } else if (pid < 0) {
