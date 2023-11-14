@@ -6,6 +6,7 @@
 #include <errno.h>
 #include "lexer.h"
 #include "parser.h"
+#include "interpreter.h"
 
 #define INV_LEN 100
 #define OPEN_ERR 1
@@ -13,10 +14,16 @@
 void invitation(void)
 {
     char s[INV_LEN];
+
+    getcwd(s, 100);
+    fprintf(stderr, "%s", "\033[01;36m"); // синий \033[22;34m
+    fprintf(stderr, "%s ", s);
+
     gethostname(s, INV_LEN);
-    fprintf(stderr, "%s", "\x1b[32m");
+    fprintf(stderr, "%s", "\x1b[32m"); // зеленый
     fprintf(stderr, "%s@%s:~$ ", getenv("USER"), s);
-    fprintf(stderr, "%s", "\x1B[37m");
+
+    fprintf(stderr, "%s", "\x1B[37m"); // серый
 }
 
 int main(int argc, char **argv)
@@ -55,7 +62,8 @@ int main(int argc, char **argv)
         }
 
         if (t != TREE_ERR) {
-            print_tree(t, PRINT_SHIFT);
+            //print_tree(t, PRINT_SHIFT);
+            execute_cmd(t);
         }
 
         if (lst != LIST_ERR)

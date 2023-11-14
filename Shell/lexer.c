@@ -4,8 +4,8 @@
 #include <string.h>
 #include "lexer.h"
 
-#define BLOCK_SIZE 1024         /* fixed limit on reading characters from a stream */
-#define LEXEME_SIZE 16          /* initial limit on the number of characters per lexeme */
+#define BLOCK_SIZE 1024
+#define LEXEME_SIZE 16
 #define PATH_MAX 255
 #define NAME_MAX 255
 #define ID_MAX 10
