@@ -6,9 +6,11 @@
 
 #define BLOCK_SIZE 1024         /* fixed limit on reading characters from a stream */
 #define LEXEME_SIZE 16          /* initial limit on the number of characters per lexeme */
+#define PATH_MAX 255
+#define NAME_MAX 255
+#define ID_MAX 10
 
-#define MEMORY_ERR 1
-#define QUOTES_ERR 2
+enum { MEMORY_ERR, QUOTES_ERR };
 
 typedef enum { 
     START, 
@@ -181,6 +183,36 @@ static void term_list(list *lst, int *size_lst, int *cur_lst)
         error(lst, size_lst, MEMORY_ERR);
 }
 
+static void set_enviroment(list *lst)
+{
+    int i;
+    char str_id[ID_MAX];
+    
+    if ((*lst) == NULL) 
+	    return;
+	    
+    for (i = 0; (*lst)[i] != NULL; i++) {
+        if (strcmp((*lst)[i], "$HOME") == 0) {
+            free((*lst)[i]);
+            (*lst)[i] = malloc(PATH_MAX * sizeof(char));
+            strcpy((*lst)[i], getenv("HOME"));
+        } else if (strcmp((*lst)[i], "$SHELL") == 0) {
+            free((*lst)[i]);
+            (*lst)[i] = malloc(PATH_MAX * sizeof(char));
+            strcpy((*lst)[i], getenv("PWD"));
+        } else if (strcmp((*lst)[i], "$USER") == 0) {
+            free((*lst)[i]);
+            (*lst)[i] = malloc(NAME_MAX * sizeof(char));
+            strcpy((*lst)[i], getlogin());
+        } else if (strcmp((*lst)[i], "$EUID") == 0) {
+            sprintf(str_id, "%d", geteuid());
+            free((*lst)[i]);
+            (*lst)[i] = malloc(ID_MAX * sizeof(char));
+            strcpy((*lst)[i], str_id);
+        }
+    }
+}
+
 list build_list(list *lst, int *size_lst, int input_fd, int output_fd)
 {
     int cur_lst = 0, cur_lex = 0, size_lex = 0, quote_cnt = 0, c;
@@ -206,6 +238,7 @@ list build_list(list *lst, int *size_lst, int input_fd, int output_fd)
                         term_list(lst, size_lst, &cur_lst);
                         if (quote_cnt % 2 == 1)
                             *lst = error(lst, size_lst, QUOTES_ERR);
+                        set_enviroment(lst);
                         V = STOP;
                     /* file */
                     } else {

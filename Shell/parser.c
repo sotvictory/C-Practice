@@ -4,18 +4,20 @@
 #include "lexer.h"
 #include "parser.h"
 
-#define BUILD_TREE_ERR 1
-#define MEM_ERR 2
-#define SEP_ERR 3
-#define BRACKETS_ERR 4
-#define SUBSHELL_ERR 5
-#define L_BRACKET_ERR 6
-#define R_BRACKET_ERR 7
-#define NO_INPFILE_ERR 8
-#define TWO_INFILE_ERR 9
-#define NO_OUTFILE_ERR 10
-#define TWO_OUTFILE_ERR 11
-#define EMPTY_CMD_ERR 12
+enum {
+    BUILD_TREE_ERR,
+    MEM_ERR,
+    SEP_ERR,
+    BRACKETS_ERR,
+    SUBSHELL_ERR,
+    L_BRACKET_ERR,
+    R_BRACKET_ERR,
+    NO_INPFILE_ERR,
+    TWO_INFILE_ERR,
+    NO_OUTFILE_ERR,
+    TWO_OUTFILE_ERR,
+    EMPTY_CMD_ERR
+};
 
 static tree get_cmd_lst(list lst, int size_lst, int *brackets_cnt, int *plex);
 static tree get_pipe(list lst, int size_lst, int *brackets_cnt, int *plex);
@@ -115,7 +117,7 @@ void print_tree(tree cmd, int shift)
     make_shift(shift);
     fprintf(stderr, "background = %d\n", cmd->background);
     make_shift(shift);
-    fprintf(stderr, "next type = %s\n", cmd->type == NEXT ? "NEXT" : cmd->type == OR ? "OR" : "AND" );
+    fprintf(stderr, "next type = %s\n", cmd->type == NEXT ? "NEXT" : cmd->type == OR ? "OR" : "AND");
 
     if (cmd->psubcmd != NULL) {
         make_shift(shift);
@@ -193,7 +195,7 @@ static void set_background(tree cmd, int is_same_cmd)
         set_background(cmd->next, 0);
 
     //fprintf(stderr, "set_background:\n");
-    //print_tree(cmd, 5);
+    //print_tree(cmd, 5, 2);
 }
 
 /* <cmd_list> ::= <pipe> {["&" | "&&" | "||" | ";"] <pipe>} ["&" | ";"] */
@@ -241,7 +243,7 @@ static tree get_cmd_lst(list lst, int size_lst, int *brackets_cnt, int *plex)
 		return error(pipe, EMPTY_CMD_ERR);
 
     //fprintf(stderr, "get_cmd_lst:\n");
-    //print_tree(pipe, 5);
+    //print_tree(pipe, 5, 2);
 
 	return pipe;
 }
@@ -281,7 +283,7 @@ static tree get_pipe(list lst, int size_lst, int *brackets_cnt, int *plex)
     }
 
     //fprintf(stderr, "get_pipe:\n");
-    //print_tree(cmd, 5);
+    //print_tree(cmd, 5, 2);
 
     return cmd;
 }
@@ -378,7 +380,7 @@ static tree get_cmd(list lst, int size_lst, int *brackets_cnt, int *plex)
     }
 
     //fprintf(stderr, "get_cmd:\n");
-    //print_tree(cmd, 5);
+    //print_tree(cmd, 5, 2);
 
     return cmd;
 }
@@ -390,7 +392,7 @@ tree build_tree(list lst, int size_lst)
     tree t = get_cmd_lst(lst, size_lst, &brackets_cnt, &plex);
 
     //fprintf(stderr, "build_tree:\n");
-    //print_tree(t, 5);
+    //print_tree(t, 5, 2);
 
     return t;
 }

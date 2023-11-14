@@ -2,8 +2,8 @@
 
 ## Pipeline
 - [x] Lexer (Task 5_1)
-- [ ] Parser (Task 5_2 — 5_all) — in progress
-- [ ] Interpreter (Task 5_2 — 5_all)
+- [x] Parser (Task 5_2 — 5_all)
+- [ ] Interpreter (Task 5_2 — 5_all) — in progress
 
 ```
 <shell_cmd> ::= <cmd_list>

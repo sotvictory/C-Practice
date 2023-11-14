@@ -36,7 +36,7 @@ int main(int argc, char **argv)
                 if ((input_fd = open(argv[i + 1], O_RDONLY, 0)) < 0) {
                     fprintf(stderr, "open() failed: %s\n", strerror(errno));
                     exit(OPEN_ERR);
-                }
+                }               
             }
         }
     }
