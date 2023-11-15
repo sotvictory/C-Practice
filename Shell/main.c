@@ -63,9 +63,9 @@ int main(int argc, char **argv)
                 //print_tree(t, PRINT_SHIFT);
                 execute_cmd(t);
             }
-            clear_list(&lst, &size_lst);
             if (t != TREE_ERR)
                 clear_tree(t);
+            clear_list(&lst, &size_lst);
         }
     }
 

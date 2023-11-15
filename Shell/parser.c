@@ -189,7 +189,6 @@ static void set_background(tree cmd, int is_same_cmd)
     cmd->background = 1;
 
     /* Set the background flag for sub-commands */
-    //set_background(cmd->psubcmd, 0);
     set_background(cmd->pipe, 0);
     if (cmd->type != NEXT)
         set_background(cmd->next, 0);
