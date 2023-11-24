@@ -353,7 +353,6 @@ static int execute_cd(tree cmd)
 }
 
 
-// вообще тут нужно освобождать ресурсы
 static int execute_exit(list *lst, int *size_lst, tree cmd, process_list *zombie_list)
 {
 	int exit_code = 0;

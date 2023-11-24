@@ -3,6 +3,8 @@
 
 #include "parser.h"
 
+#define INTERPRETER_ERR -1
+
 typedef struct process *process_list;
 
 typedef struct process {

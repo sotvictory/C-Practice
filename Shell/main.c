@@ -31,7 +31,7 @@ void invitation(void)
 
 int main(int argc, char **argv)
 {
-    int size_lst = 0;
+    int size_lst = 0, exit_code = 0;
     list lst = NULL;
     tree cmd = NULL;
     process_list zombie_lst = NULL;
@@ -49,6 +49,9 @@ int main(int argc, char **argv)
             if (cmd != TREE_ERR) {
                 execute(&lst, &size_lst, cmd, &zombie_lst);
                 fflush(stream);
+                if (exit_code == INTERPRETER_ERR) {
+                    clear_resources(&lst, &size_lst, cmd);
+                }
             } else if (cmd == TREE_ERR) {
                 clear_resources(&lst, &size_lst, cmd);
             }
@@ -60,5 +63,5 @@ int main(int argc, char **argv)
 
     clear_resources(&lst, &size_lst, cmd);
 
-    exit(0);
+    exit(exit_code);
 }
