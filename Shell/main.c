@@ -13,13 +13,6 @@
 #define INV_LEN 100
 #define stream stdout
 
-void clear_resources(list *lst, int *size_lst, tree cmd, process_list zombie_lst)
-{
-    clear_list(lst, size_lst);
-    clear_tree(cmd);
-    clear_zombie(zombie_lst, 2);
-}
-
 void invitation(void)
 {
     char s[INV_LEN];
@@ -44,7 +37,8 @@ int main(int argc, char **argv)
     process_list zombie_lst = NULL;
 
     while (1) {
-        clear_resources(&lst, &size_lst, cmd, zombie_lst);
+        clear_resources(&lst, &size_lst, cmd);
+        zombie_lst = wait_zombies(zombie_lst);
         invitation();
         lst = build_list(&lst, &size_lst, 0, 1);
         if (lst == NULL) {
@@ -53,17 +47,18 @@ int main(int argc, char **argv)
             cmd = build_tree(lst, size_lst);
             //print_tree(cmd, 5);
             if (cmd != TREE_ERR) {
-                execute(cmd, &zombie_lst);
-                // если с ошибкой -- очистить все
+                execute(&lst, &size_lst, cmd, &zombie_lst);
+                fflush(stream);
             } else if (cmd == TREE_ERR) {
-                clear_resources(&lst, &size_lst, cmd, zombie_lst);
+                clear_resources(&lst, &size_lst, cmd);
             }
         } else if (lst == LIST_ERR) {
-            clear_resources(&lst, &size_lst, cmd, zombie_lst);
+            clear_resources(&lst, &size_lst, cmd);
         }
-        wait_zombies(zombie_lst); // ???
         while (wait(NULL) > 0) {};
     }
+
+    clear_resources(&lst, &size_lst, cmd);
 
     exit(0);
 }
