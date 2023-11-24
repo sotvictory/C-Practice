@@ -10,7 +10,10 @@
 #define NAME_MAX 255
 #define ID_MAX 10
 
-enum { MEMORY_ERR, QUOTES_ERR };
+enum { 
+    MEMORY_ERR, 
+    QUOTES_ERR 
+};
 
 typedef enum { 
     START, 
